@@ -1,4 +1,4 @@
-/* Fonte usada pelos CSS Modules da câmera; sai junto com eles na Task 12. */
+/* DM Sans: fonte da área da câmera (token --font-camera). */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss";
@@ -56,6 +56,15 @@
 
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-camera: 'DM Sans', -apple-system, sans-serif;
+
+  /* Paleta escura da câmera (independente do tema claro do app). */
+  --color-cam-fundo: #0d0d14;
+  --color-cam-onboarding: #0a0914;
+  --color-cam-verde: #33c778;
+  --color-cam-azul: #4f8cff;
+  --color-cam-azul-2: #6babff;
+  --color-cam-foco: #fad142;
 }
 
 /* Animações dos componentes base (portadas do Pitch). */
@@ -67,6 +76,10 @@
   --animate-toast-in: toast-in 260ms var(--ease-spring) both;
   --animate-shimmer: shimmer 1.4s ease-in-out infinite;
   --animate-typing-dot: typing-dot 1.2s var(--ease-io) infinite;
+  --animate-cam-scan: cam-scan 2.5s ease-in-out infinite;
+  --animate-cam-flash: cam-flash 0.25s ease-out;
+  --animate-cam-slide: cam-slide 0.3s ease;
+  --animate-cam-girar: cam-girar 0.8s linear infinite;
 
   @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes sheet-in { from { transform: translateY(100%); } to { transform: none; } }
@@ -86,6 +99,17 @@
     0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
     30% { transform: translateY(-4px); opacity: 1; }
   }
+  @keyframes cam-scan {
+    0% { top: 30%; opacity: 0.3; }
+    50% { top: 65%; opacity: 1; }
+    100% { top: 30%; opacity: 0.3; }
+  }
+  @keyframes cam-flash { 0% { opacity: 0; } 30% { opacity: 0.9; } 100% { opacity: 0; } }
+  @keyframes cam-slide {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes cam-girar { to { transform: rotate(360deg); } }
   @keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
 }
 

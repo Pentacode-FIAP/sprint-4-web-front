@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Onboarding } from './Onboarding';
-import { Camera } from './Camera';
+import { OnboardingScreen } from './OnboardingScreen';
+import { CameraScreen } from './CameraScreen';
 
 const CHAVE_ONBOARDING = 'jovi_onboarding_visto';
 
@@ -17,12 +17,7 @@ export function CameraApp() {
   }
 
   if (onboarding) {
-    return <Onboarding onConcluir={concluirOnboarding} />;
+    return <OnboardingScreen onConcluir={concluirOnboarding} />;
   }
-  return (
-    <Camera
-      onAbrirConfig={() => navigate('/camera/modos')}
-      onAbrirEstudos={(aba) => navigate(`/${aba}`)}
-    />
-  );
+  return <CameraScreen onAbrirConfig={() => navigate('/camera/modos')} />;
 }
