@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useColecao } from './useColecao';
 import { montarContextoChat } from '../lib/context';
-import { enviarMensagemChat } from '../lib/gemini';
+import { ErroSemChave, MENSAGEM_SEM_CHAVE, enviarMensagemChat } from '../lib/gemini';
 
 /**
  * Conversa com a IA. `enviar` devolve `false` só quando a mensagem do aluno não
@@ -38,8 +38,8 @@ export function useChat() {
       const contexto = montarContextoChat({ materias, eventos, resumos, anotacoes, fotos });
       const resposta = await enviarMensagemChat(contexto, historico, conteudo);
       adicionarMensagem({ role: 'assistant', texto: resposta, criadoEm: new Date().toISOString() });
-    } catch {
-      setErro('Erro ao gerar, tente novamente.');
+    } catch (err) {
+      setErro(err instanceof ErroSemChave ? MENSAGEM_SEM_CHAVE : 'Erro ao gerar, tente novamente.');
     } finally {
       ocupadoRef.current = false;
       setEnviando(false);

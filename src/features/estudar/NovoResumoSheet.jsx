@@ -6,24 +6,33 @@ import { Sheet } from '../../components/Sheet';
 import { MateriaSelect } from '../../components/MateriaSelect';
 import { BTN_PRIMARIO, BTN_TEXTO, CAMPO, CAMPO_ROTULO } from '../../components/estilosBotao';
 
-export function NovoResumoSheet({ onFechar, fotoInicialId }) {
+export function NovoResumoSheet({ onFechar, fotoInicialId, materiaInicial }) {
   const { itens: fotosTodas } = useColecao('fotos');
-  const { gerando, erro, gerarDeFotos, salvarResumo } = useResumos();
+  const { gerando, erro, gerarDeFotos, gerarDeTexto, salvarResumo } = useResumos();
+  const { itens: materias } = useColecao('materias');
   const fotos = [...fotosTodas].sort((a, b) => b.dataUpload.localeCompare(a.dataUpload));
 
   const [fotoIds, setFotoIds] = useState(fotoInicialId !== undefined ? [fotoInicialId] : []);
   const [titulo, setTitulo] = useState('');
-  const [materiaId, setMateriaId] = useState(undefined);
+  const [materiaId, setMateriaId] = useState(materiaInicial);
   const [conteudo, setConteudo] = useState('');
   const [revisando, setRevisando] = useState(false);
+  const [modo, setModo] = useState('fotos');
+  const [texto, setTexto] = useState('');
 
   function alternarFoto(id) {
     setFotoIds((atual) => (atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id]));
   }
 
+  const materiaNomeSelecionada = materias.find((m) => m.id === materiaId)?.nome;
+
   async function gerar() {
-    if (fotoIds.length === 0 || gerando) return;
-    const resultado = await gerarDeFotos(fotoIds, materiaId);
+    if (gerando) return;
+    if (modo === 'fotos' ? fotoIds.length === 0 : !texto.trim()) return;
+    const resultado =
+      modo === 'fotos'
+        ? await gerarDeFotos(fotoIds, materiaId)
+        : await gerarDeTexto(texto.trim(), materiaNomeSelecionada);
     if (resultado !== null) {
       setConteudo(resultado);
       setRevisando(true);
@@ -35,7 +44,11 @@ export function NovoResumoSheet({ onFechar, fotoInicialId }) {
     if (salvarResumo({ titulo, materiaId, conteudo, fotoIds })) onFechar();
   }
 
-  const podeAvancar = revisando ? Boolean(titulo.trim() && conteudo.trim()) : fotoIds.length > 0;
+  const podeAvancar = revisando
+    ? Boolean(titulo.trim() && conteudo.trim())
+    : modo === 'fotos'
+      ? fotoIds.length > 0
+      : Boolean(texto.trim());
 
   return (
     <Sheet
@@ -55,7 +68,7 @@ export function NovoResumoSheet({ onFechar, fotoInicialId }) {
           ) : (
             <Sparkles size={17} />
           )}
-          {gerando ? 'Aguarde…' : revisando ? 'Salvar resumo' : 'Gerar resumo com IA'}
+          {gerando ? 'Aguarde…' : revisando ? 'Salvar resumo' : modo === 'fotos' ? 'Gerar resumo com IA' : 'Resumir texto com IA'}
         </button>
       }
     >
@@ -91,6 +104,32 @@ export function NovoResumoSheet({ onFechar, fotoInicialId }) {
           </>
         ) : (
           <>
+            <div role="group" aria-label="Origem do material" className="mb-3 flex gap-2">
+              {[['fotos', 'Das fotos'], ['texto', 'De um texto']].map(([id, rotulo]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={modo === id}
+                  onClick={() => setModo(id)}
+                  className="min-h-11 flex-1 cursor-pointer rounded-sm border border-border bg-surface-2 px-3 text-[13px] font-semibold text-text-muted aria-pressed:border-2 aria-pressed:border-accent aria-pressed:text-accent"
+                >
+                  {rotulo}
+                </button>
+              ))}
+            </div>
+            {modo === 'texto' ? (
+              <label className="mb-3.5 block">
+                <span className={CAMPO_ROTULO}>Texto do material</span>
+                <textarea
+                  rows={10}
+                  value={texto}
+                  onChange={(e) => setTexto(e.target.value)}
+                  placeholder="Cole aqui o texto que a IA deve organizar em resumo."
+                  className={CAMPO}
+                />
+              </label>
+            ) : (
+            <>
             <p className="mt-0 mb-3 text-[13px] leading-normal text-text-muted">
               {fotos.length
                 ? `${fotoIds.length} ${fotoIds.length === 1 ? 'foto selecionada' : 'fotos selecionadas'}`
@@ -118,6 +157,8 @@ export function NovoResumoSheet({ onFechar, fotoInicialId }) {
                 );
               })}
             </div>
+            </>
+            )}
           </>
         )}
       </fieldset>

@@ -1,17 +1,39 @@
 import { useState } from 'react';
-import { Pencil, Sparkles } from 'lucide-react';
+import { Pencil, Play, Sparkles } from 'lucide-react';
 import { useResumos } from '../../hooks/useResumos';
-import { useExerciciosDoResumo } from '../../hooks/useExerciciosDoResumo';
 import { tempoLeituraMin } from '../../lib/math';
 import { Sheet } from '../../components/Sheet';
 import { Toast } from '../../components/Toast';
 import { SkeletonCard } from '../../components/Skeleton';
 import { ExercicioLista } from '../../components/ExercicioLista';
+import { Segmented } from '../../components/Segmented';
 import { BTN_PRIMARIO, BTN_SECUNDARIO, CAMPO, CAMPO_ROTULO } from '../../components/estilosBotao';
+import { SerieExercicios } from '../exercicios/SerieExercicios';
+import { itensLegados, questoesDoExercicio } from '../exercicios/questoes';
+
+const QTDS = [
+  { id: '5', label: '5' },
+  { id: '10', label: '10' },
+  { id: '15', label: '15' },
+];
+
+const NIVEIS = [
+  { id: 'facil', label: 'Fácil' },
+  { id: 'medio', label: 'Médio' },
+  { id: 'dificil', label: 'Difícil' },
+  { id: 'misto', label: 'Misto' },
+];
 
 export function ResumoDetalhe({ resumo, onFechar }) {
-  const { erro: erroResumo, limparErro, salvarResumo } = useResumos();
-  const exercicios = useExerciciosDoResumo(resumo);
+  const { erro, limparErro, salvarResumo, gerando, exercicioDe, gerarQuestoes } = useResumos();
+
+  const exercicio = exercicioDe(resumo.id);
+  const questoes = questoesDoExercicio(exercicio, resumo.materiaId);
+  const legados = itensLegados(exercicio);
+
+  const [qtd, setQtd] = useState('5');
+  const [nivel, setNivel] = useState('misto');
+  const [respondendo, setRespondendo] = useState(false);
 
   const [editando, setEditando] = useState(false);
   const [titulo, setTitulo] = useState(resumo.titulo);
@@ -29,7 +51,13 @@ export function ResumoDetalhe({ resumo, onFechar }) {
     if (ok) setEditando(false);
   }
 
+  async function gerar() {
+    const novo = await gerarQuestoes(resumo, { qtd: Number(qtd), nivel });
+    if (novo) setRespondendo(true);
+  }
+
   return (
+    <>
     <Sheet titulo={resumo.titulo} onFechar={onFechar}>
       {editando ? (
         <div className="flex flex-col gap-3.5">
@@ -69,21 +97,55 @@ export function ResumoDetalhe({ resumo, onFechar }) {
         </>
       )}
 
-      <h3 className="mt-6 mb-2.5 text-[11px] font-semibold tracking-[0.09em] text-text-muted uppercase">Exercícios</h3>
+      <h3 className="mt-6 mb-2.5 text-[11px] font-semibold tracking-[0.09em] text-text-muted uppercase">Questões</h3>
 
-      {exercicios.gerando ? (
-        <SkeletonCard linhas={3} rotulo="Gerando exercícios com IA" />
-      ) : exercicios.temExercicios ? (
-        <ExercicioLista itens={exercicios.itens} />
+      {gerando ? (
+        <SkeletonCard linhas={3} rotulo="Gerando questões com IA" />
       ) : (
-        <button type="button" className={`${BTN_PRIMARIO} w-full`} onClick={exercicios.gerar}>
-          <Sparkles size={17} strokeWidth={2} />
-          Gerar exercícios
-        </button>
+        <>
+          {questoes.length > 0 && (
+            <button type="button" className={`${BTN_PRIMARIO} mb-4 w-full`} onClick={() => setRespondendo(true)}>
+              <Play size={17} strokeWidth={2} />
+              Responder {questoes.length} {questoes.length === 1 ? 'questão' : 'questões'}
+            </button>
+          )}
+
+          <div className="rounded-md border border-border bg-surface p-3.5">
+            <span className={CAMPO_ROTULO}>Quantas questões</span>
+            <Segmented itens={QTDS} valor={qtd} onChange={setQtd} rotulo="Quantidade de questões" modo="radio" />
+            <span className={CAMPO_ROTULO}>Nível</span>
+            <Segmented itens={NIVEIS} valor={nivel} onChange={setNivel} rotulo="Nível das questões" modo="radio" />
+            <button type="button" className={`${BTN_SECUNDARIO} w-full`} onClick={gerar}>
+              <Sparkles size={17} strokeWidth={2} />
+              {questoes.length > 0 ? 'Gerar novas questões' : 'Gerar questões'}
+            </button>
+          </div>
+
+          {legados.length > 0 && (
+            <>
+              <p className="mt-4 mb-2.5 text-[13px] leading-normal text-text-muted">
+                Questões antigas, sem alternativas. Elas não entram nas suas estatísticas.
+              </p>
+              <ExercicioLista itens={legados} />
+            </>
+          )}
+        </>
       )}
 
-      {exercicios.erro && <Toast message={exercicios.erro} onClose={exercicios.limparErro} />}
-      {erroResumo && <Toast message={erroResumo} onClose={limparErro} />}
+      {erro && <Toast message={erro} onClose={limparErro} />}
     </Sheet>
+
+    {respondendo && questoes.length > 0 && (
+      <SerieExercicios
+        titulo={resumo.titulo}
+        questoes={questoes}
+        onFechar={() => setRespondendo(false)}
+        onRefazer={() => {
+          setRespondendo(false);
+          gerar();
+        }}
+      />
+    )}
+    </>
   );
 }

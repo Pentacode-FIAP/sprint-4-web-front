@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Toast } from '../../components/Toast';
 import { useColecao } from '../../hooks/useColecao';
 import { MAX_DIM_FOTO, QUALIDADE_FOTO } from '../../lib/images';
-import { runOcr } from '../../lib/gemini';
+import { ErroSemChave, MENSAGEM_SEM_CHAVE, runOcr } from '../../lib/gemini';
 import { OcrPanel } from './OcrPanel';
 import styles from './Camera.module.css';
 
@@ -165,9 +165,12 @@ export function Camera({ onAbrirConfig, onAbrirEstudos }) {
       } else {
         setOcr({ estado: 'pronto', texto: texto.trim() });
       }
-    } catch {
+    } catch (err) {
       if (ocrReqRef.current !== req) return;
-      setOcr({ estado: 'erro', mensagem: 'Não consegui ler o texto. Tente de novo.' });
+      setOcr({
+        estado: 'erro',
+        mensagem: err instanceof ErroSemChave ? MENSAGEM_SEM_CHAVE : 'Não consegui ler o texto. Tente de novo.',
+      });
     }
   }
 

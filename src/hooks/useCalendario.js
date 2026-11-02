@@ -1,6 +1,8 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useColecao } from './useColecao';
 import { dataLocal } from '../lib/date';
+import { datasPreparacao, priorizarResumos } from '../lib/preparacao';
+import { diaLocal, diffDias } from '../lib/progresso';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -12,6 +14,11 @@ const pad = (n) => String(n).padStart(2, '0');
 export function useCalendario() {
   const { itens: eventos, adicionar, atualizar, remover } = useColecao('eventos');
   const { itens: materias } = useColecao('materias');
+  const { itens: resumos } = useColecao('resumos');
+  const { itens: exercicios } = useColecao('exercicios');
+  const { itens: tentativas } = useColecao('tentativas');
+  const eventosRef = useRef(eventos);
+  eventosRef.current = eventos;
   const [referencia, setReferencia] = useState(() => {
     const agora = new Date();
     return { ano: agora.getFullYear(), mes: agora.getMonth() };
@@ -58,9 +65,58 @@ export function useCalendario() {
   const materiaNome = useCallback((id) => materias.find((m) => m.id === id)?.nome, [materias]);
 
   // Devolve true se gravou; false deixa o formulário aberto com o erro.
+  // Mudar matéria, tipo ou conteúdo da prova invalida o progresso do plano.
   const salvarEvento = useCallback(
-    (dados, id) => (id !== undefined ? atualizar(id, dados) : adicionar(dados) !== null),
+    (dados, id) => {
+      if (id === undefined) return adicionar(dados) !== null;
+      const anterior = eventosRef.current.find((e) => e.id === id);
+      const chave = (e) => [...(e?.resumoIds ?? [])].sort().join(',');
+      const mudou =
+        anterior?.materiaId !== dados.materiaId || anterior?.tipo !== dados.tipo || chave(anterior) !== chave(dados);
+      return atualizar(id, mudou ? { ...dados, revisadosIds: [], treinoConcluido: false, simuladoId: undefined } : dados);
+    },
     [adicionar, atualizar],
+  );
+
+  /**
+   * Plano de preparação de uma prova. `selecionados` (ids de resumo) é a
+   * escolha ainda não salva, enquanto o aluno edita o conteúdo da prova.
+   */
+  const planoDaProva = useCallback(
+    (evento, selecionados = null) => {
+      const hojeIso = diaLocal(new Date());
+      const disponiveis = resumos.filter((r) => evento.materiaId === undefined || r.materiaId === evento.materiaId);
+      const ids = selecionados ?? evento.resumoIds ?? disponiveis.map((r) => r.id);
+      const escolhidos = disponiveis.filter((r) => ids.includes(r.id));
+      const revisados = evento.revisadosIds ?? [];
+      const revisaoFeita = escolhidos.length > 0 && escolhidos.every((r) => revisados.includes(r.id));
+      return {
+        hoje: hojeIso,
+        disponiveis,
+        ids,
+        escolhidos,
+        ordenados: priorizarResumos(escolhidos, exercicios, tentativas),
+        configurado: Boolean(evento.resumoIds?.length),
+        revisados,
+        revisaoFeita,
+        treinoConcluido: Boolean(evento.treinoConcluido),
+        simuladoFeito: evento.simuladoId !== undefined,
+        concluidas: Number(revisaoFeita) + Number(Boolean(evento.treinoConcluido)) + Number(evento.simuladoId !== undefined),
+        faltam: diffDias(hojeIso, evento.data),
+        datas: datasPreparacao(evento.data, hojeIso),
+      };
+    },
+    [resumos, exercicios, tentativas],
+  );
+
+  /** `mudancas` é um objeto, ou uma função do evento atual (para alternar listas sem ler dado velho). */
+  const atualizarProgressoPlano = useCallback(
+    (eventoId, mudancas) => {
+      const atual = eventosRef.current.find((e) => e.id === eventoId);
+      if (!atual) return false;
+      return atualizar(eventoId, typeof mudancas === 'function' ? mudancas(atual) : mudancas);
+    },
+    [atualizar],
   );
 
   const removerEvento = useCallback((id) => remover(id), [remover]);
@@ -75,7 +131,10 @@ export function useCalendario() {
     irParaProximoMes,
     eventosDoMes,
     eventosDoDia,
+    eventos,
     salvarEvento,
     removerEvento,
+    planoDaProva,
+    atualizarProgressoPlano,
   };
 }

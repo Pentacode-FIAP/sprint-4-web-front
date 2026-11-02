@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Check, Copy, ScanText } from 'lucide-react';
-import { runOcr } from '../../lib/gemini';
+import { ErroSemChave, MENSAGEM_SEM_CHAVE, runOcr } from '../../lib/gemini';
 import { Sheet } from '../../components/Sheet';
 import { Toast } from '../../components/Toast';
 import { Skeleton } from '../../components/Skeleton';
@@ -27,8 +27,8 @@ export function FotoDetalhe({ foto, onFechar, onSalvarOcr }) {
       const resultado = await runOcr(foto.dataUrl);
       setTexto(resultado);
       onSalvarOcr(foto.id, resultado);
-    } catch {
-      setErro('Erro ao gerar, tente novamente.');
+    } catch (err) {
+      setErro(err instanceof ErroSemChave ? MENSAGEM_SEM_CHAVE : 'Erro ao gerar, tente novamente.');
     } finally {
       setCarregando(false);
     }

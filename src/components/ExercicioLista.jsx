@@ -1,11 +1,5 @@
 import { ChevronDown } from 'lucide-react';
-
-const ROTULO_DIFICULDADE = { facil: 'Fácil', medio: 'Médio', dificil: 'Difícil' };
-const COR_DIFICULDADE = {
-  facil: 'border-facil/25 bg-facil/7 text-facil',
-  medio: 'border-medio/25 bg-medio/7 text-medio',
-  dificil: 'border-dificil/25 bg-dificil/7 text-dificil',
-};
+import { PilulaDificuldade } from './PilulaDificuldade';
 
 export function ExercicioLista({ itens }) {
   return (
@@ -17,14 +11,10 @@ export function ExercicioLista({ itens }) {
               {i + 1}
             </span>
             <span className="flex-1 text-sm leading-normal">{item.pergunta}</span>
-            <span
-              className={`inline-flex flex-none items-center gap-[5px] rounded-full border px-[9px] py-[3px] text-[11px] font-semibold whitespace-nowrap before:size-[5px] before:rounded-full before:bg-current before:content-[''] ${COR_DIFICULDADE[item.dificuldade] ?? ''}`}
-            >
-              {ROTULO_DIFICULDADE[item.dificuldade]}
-            </span>
+            <PilulaDificuldade nivel={item.dificuldade} />
           </div>
           <details className="group mt-2.5">
-            <summary className="inline-flex min-h-8 cursor-pointer list-none items-center gap-1.5 py-1.5 text-[12.5px] font-semibold text-accent [&::-webkit-details-marker]:hidden">
+            <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 py-1.5 text-[12.5px] font-semibold text-accent [&::-webkit-details-marker]:hidden">
               Ver resposta
               <ChevronDown size={14} strokeWidth={2.5} className="transition-transform group-open:rotate-180" />
             </summary>

@@ -25,10 +25,30 @@ export function useColecao(nome) {
     [aplicar, nome],
   );
 
+  /** Grava vários itens numa única escrita: ou entram todos, ou nenhum. Devolve os itens ou null. */
+  const adicionarLote = useCallback((lista) => {
+    const r = aplicar(nome, (itens) => {
+      let acumulado = itens;
+      const criados = [];
+      for (const dados of lista) {
+        const { itens: novos, item } = adicionarItem(acumulado, dados);
+        acumulado = novos;
+        criados.push(item);
+      }
+      return { itens: acumulado, resultado: criados };
+    });
+    return r.ok ? r.resultado : null;
+  }, [aplicar, nome]);
+
+  const removerLote = useCallback(
+    (ids) => aplicar(nome, (itens) => ({ itens: itens.filter((i) => !ids.includes(i.id)) })).ok,
+    [aplicar, nome],
+  );
+
   const substituir = useCallback(
     (novosItens) => aplicar(nome, () => ({ itens: novosItens })).ok,
     [aplicar, nome],
   );
 
-  return { itens: colecoes[nome] ?? [], adicionar, atualizar, remover, substituir };
+  return { itens: colecoes[nome] ?? [], adicionar, adicionarLote, atualizar, remover, removerLote, substituir };
 }

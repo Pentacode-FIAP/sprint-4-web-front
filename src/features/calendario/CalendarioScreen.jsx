@@ -4,9 +4,10 @@ import { useCalendario } from '../../hooks/useCalendario';
 import { useConfirmacao } from '../../hooks/useConfirmacao';
 import { dataLocal } from '../../lib/date';
 import { EventoForm } from './EventoForm';
+import { PlanoProva } from './PlanoProva';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { EmptyState } from '../../components/EmptyState';
-import { BTN_ICONE_SUTIL, BTN_PRIMARIO_ICONE } from '../../components/estilosBotao';
+import { BTN_ICONE_SUTIL, BTN_PRIMARIO, BTN_PRIMARIO_ICONE } from '../../components/estilosBotao';
 
 const DIAS_SEMANA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 const MESES = [
@@ -32,6 +33,7 @@ export function CalendarioScreen() {
   const [selecionado, setSelecionado] = useState(() => dataLocal(new Date()));
   const [formAberto, setFormAberto] = useState(false);
   const [eventoEditando, setEventoEditando] = useState(undefined);
+  const [planoId, setPlanoId] = useState(null);
   const { confirmar, dialogoConfirmacao } = useConfirmacao();
 
   function novoLembrete() {
@@ -154,7 +156,7 @@ export function CalendarioScreen() {
             {proximos.map((ev) => (
               <li
                 key={ev.id}
-                className="flex animate-rise-in items-center gap-3 rounded-md border border-border bg-surface p-3.5 shadow-1"
+                className="flex animate-rise-in flex-wrap items-center gap-3 rounded-md border border-border bg-surface p-3.5 shadow-1"
               >
                 <div className="flex h-[46px] w-[46px] flex-none flex-col items-center justify-center rounded-sm bg-surface-2 text-base leading-none font-semibold tabular-nums">
                   {ev.data.slice(8, 10)}
@@ -190,6 +192,11 @@ export function CalendarioScreen() {
                     <Trash2 size={16} strokeWidth={2} />
                   </button>
                 </div>
+                {ev.tipo === 'prova' && (
+                  <button type="button" className={`${BTN_PRIMARIO} w-full`} onClick={() => setPlanoId(ev.id)}>
+                    Me preparar para esta prova
+                  </button>
+                )}
               </li>
             ))}
           </ul>
@@ -204,6 +211,7 @@ export function CalendarioScreen() {
           onFechar={() => setFormAberto(false)}
         />
       )}
+      {planoId !== null && <PlanoProva eventoId={planoId} onFechar={() => setPlanoId(null)} />}
       {dialogoConfirmacao}
     </>
   );
