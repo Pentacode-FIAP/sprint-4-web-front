@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { useColecao } from '../../hooks/useColecao';
 
 const CORES = ['#274628', '#5b7596', '#a3651f', '#7a6ba8', '#b04e72', '#3f7a75'];
 
@@ -9,34 +10,36 @@ function corPara(nome) {
   return CORES[hash % CORES.length];
 }
 
-export function Materias({ materias, setMaterias, onFechar }) {
+export function Materias({ onFechar }) {
+  const { itens: materias, adicionar: adicionarMateria, remover: removerMateria } = useColecao('materias');
   const [nome, setNome] = useState('');
   const [erro, setErro] = useState(null);
 
   function adicionar() {
     const limpo = nome.trim();
     if (!limpo) return;
-    try {
-      setMaterias([...materias, { id: Date.now(), nome: limpo, cor: corPara(limpo) }]);
+    if (adicionarMateria({ nome: limpo, cor: corPara(limpo) })) {
       setNome('');
       setErro(null);
-    } catch {
+    } else {
       setErro('Erro ao salvar matéria, tente novamente.');
     }
   }
 
   function remover(id) {
-    setMaterias(materias.filter((m) => m.id !== id));
+    removerMateria(id);
   }
 
   return (
     <div className="overlay-content">
-      <div className="overlay-header">
-        <h2>Matérias</h2>
-        <button onClick={onFechar}>
-          <X size={18} strokeWidth={2} /> Fechar
-        </button>
-      </div>
+      {onFechar && (
+        <div className="overlay-header">
+          <h2>Matérias</h2>
+          <button onClick={onFechar}>
+            <X size={18} strokeWidth={2} /> Fechar
+          </button>
+        </div>
+      )}
       <div className="form-row">
         <input
           value={nome}

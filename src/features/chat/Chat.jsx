@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { Send } from 'lucide-react';
-import { carregar, salvar } from '../lib/storage';
-import { montarContextoChat } from '../lib/context';
-import { enviarMensagemChat } from '../lib/gemini';
-import { Toast } from '../components/Toast';
-import { Header } from '../components/Header';
+import { useColecao } from '../../hooks/useColecao';
+import { montarContextoChat } from '../../lib/context';
+import { enviarMensagemChat } from '../../lib/gemini';
+import { Toast } from '../../components/Toast';
+import { Header } from '../../components/Header';
 
 export function Chat() {
-  const [mensagens, setMensagens] = useState(() => carregar('estudos:chatMessages', []));
-  useEffect(() => {
-    salvar('estudos:chatMessages', mensagens);
-  }, [mensagens]);
+  const { itens: mensagens, adicionar: adicionarMensagem } = useColecao('chatMessages');
+  const { itens: materias } = useColecao('materias');
+  const { itens: eventos } = useColecao('eventos');
+  const { itens: resumos } = useColecao('resumos');
+  const { itens: anotacoes } = useColecao('anotacoes');
+  const { itens: fotos } = useColecao('fotos');
 
   const [texto, setTexto] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -30,22 +32,12 @@ export function Chat() {
     setErro(null);
     try {
       const historico = mensagens.map((m) => ({ role: m.role, texto: m.texto }));
-      setMensagens((atual) => [
-        ...atual,
-        { id: Date.now(), role: 'user', texto: conteudo, criadoEm: new Date().toISOString() },
-      ]);
+      adicionarMensagem({ role: 'user', texto: conteudo, criadoEm: new Date().toISOString() });
       const contexto = montarContextoChat({
-        materias: carregar('estudos:materias', []),
-        eventos: carregar('estudos:eventos', []),
-        resumos: carregar('estudos:resumos', []),
-        anotacoes: carregar('estudos:anotacoes', []),
-        fotos: carregar('estudos:fotos', []),
+        materias, eventos, resumos, anotacoes, fotos,
       });
       const resposta = await enviarMensagemChat(contexto, historico, conteudo);
-      setMensagens((atual) => [
-        ...atual,
-        { id: Date.now(), role: 'assistant', texto: resposta, criadoEm: new Date().toISOString() },
-      ]);
+      adicionarMensagem({ role: 'assistant', texto: resposta, criadoEm: new Date().toISOString() });
     } catch {
       setErro('Erro ao gerar, tente novamente.');
     } finally {

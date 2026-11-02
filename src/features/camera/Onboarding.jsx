@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useConfirmacao } from '../../hooks/useConfirmacao';
 import styles from './Onboarding.module.css';
 
 const SLIDES = [
@@ -55,6 +56,7 @@ const SLIDES = [
 
 export function Onboarding({ onConcluir }) {
   const [slideAtual, setSlideAtual] = useState(0);
+  const { confirmar, dialogoConfirmacao } = useConfirmacao();
   const ultimo = slideAtual === SLIDES.length - 1;
 
   function proximo() {
@@ -69,10 +71,13 @@ export function Onboarding({ onConcluir }) {
     setSlideAtual((s) => Math.max(0, s - 1));
   }
 
-  function pular() {
-    if (window.confirm('Pular o tutorial e ir direto para o app?')) {
-      onConcluir();
-    }
+  async function pular() {
+    const ok = await confirmar({
+      titulo: 'Pular o tutorial?',
+      descricao: 'Você vai direto para o app e pode rever o tutorial depois.',
+      rotuloConfirmar: 'Pular',
+    });
+    if (ok) onConcluir();
   }
 
   useEffect(() => {
@@ -137,6 +142,7 @@ export function Onboarding({ onConcluir }) {
           </div>
         </article>
       </section>
+      {dialogoConfirmacao}
     </div>
   );
 }

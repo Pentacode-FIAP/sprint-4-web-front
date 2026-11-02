@@ -8,5 +8,10 @@ export function carregar(chave, padrao) {
 }
 
 export function salvar(chave, valor) {
-  localStorage.setItem(chave, JSON.stringify(valor));
+  try {
+    localStorage.setItem(chave, JSON.stringify(valor));
+    return true;
+  } catch {
+    return false;
+  }
 }

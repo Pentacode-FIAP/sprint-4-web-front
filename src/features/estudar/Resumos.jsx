@@ -1,18 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Check } from 'lucide-react';
-import { carregar, salvar } from '../lib/storage';
-import { MateriaSelect } from '../components/MateriaSelect';
-import { Header } from '../components/Header';
-import { Toast } from '../components/Toast';
-import { gerarResumo } from '../lib/gemini';
+import { useColecao } from '../../hooks/useColecao';
+import { MateriaSelect } from '../../components/MateriaSelect';
+import { Header } from '../../components/Header';
+import { Toast } from '../../components/Toast';
+import { gerarResumo } from '../../lib/gemini';
 import { ResumoDetalhe } from './ResumoDetalhe';
 
-export function Resumos({ materias, setMaterias }) {
-  const [fotos] = useState(() => carregar('estudos:fotos', []));
-  const [resumos, setResumos] = useState(() => carregar('estudos:resumos', []));
-  useEffect(() => {
-    salvar('estudos:resumos', resumos);
-  }, [resumos]);
+export function Resumos() {
+  const { itens: fotos } = useColecao('fotos');
+  const { itens: resumos, adicionar } = useColecao('resumos');
+  const { itens: materias } = useColecao('materias');
 
   const fotosOrdenadas = [...fotos].sort((a, b) => b.dataUpload.localeCompare(a.dataUpload));
   const resumosOrdenados = [...resumos].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
@@ -39,12 +37,11 @@ export function Resumos({ materias, setMaterias }) {
     try {
       const dataUrls = fotos.filter((f) => fotoIds.includes(f.id)).map((f) => f.dataUrl);
       const conteudo = await gerarResumo(dataUrls, materiaNome(materiaId));
-      setResumos([
-        ...resumos,
-        { id: Date.now(), titulo: titulo.trim(), materiaId, conteudo, fotoIds, criadoEm: new Date().toISOString() },
-      ]);
-      setFotoIds([]);
-      setTitulo('');
+      const novo = adicionar({ titulo: titulo.trim(), materiaId, conteudo, fotoIds, criadoEm: new Date().toISOString() });
+      if (novo) {
+        setFotoIds([]);
+        setTitulo('');
+      }
     } catch {
       setErro('Erro ao gerar, tente novamente.');
     } finally {
@@ -77,7 +74,7 @@ export function Resumos({ materias, setMaterias }) {
       {fotos.length === 0 && <p className="vazio">Envie fotos na Galeria primeiro</p>}
 
       <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Nome do resumo" />
-      <MateriaSelect value={materiaId} onChange={setMateriaId} permitirVazio={false} materias={materias} setMaterias={setMaterias} />
+      <MateriaSelect value={materiaId} onChange={setMateriaId} permitirVazio={false} />
       <button className="btn-primary" onClick={gerar} disabled={gerando || fotoIds.length === 0 || !titulo.trim()}>
         {gerando ? 'Gerando...' : 'Gerar resumo com IA'}
       </button>

@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import styles from './CameraModos.module.css';
+import { useNavigate } from 'react-router-dom';
+import { useConfirmacao } from '../../hooks/useConfirmacao';
+import styles from './ConfigScreen.module.css';
 
 const MODOS_INICIAIS = [
   {
@@ -167,17 +169,26 @@ const LABEL_ABA = {
   mais: 'Mais',
 };
 
-export function CameraModos({ onVoltar }) {
+export function ConfigScreen() {
+  const navigate = useNavigate();
+  const onVoltar = () => navigate('/');
   const [modos, setModos] = useState(MODOS_INICIAIS);
   const [editando, setEditando] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState('mais');
+  const { confirmar, dialogoConfirmacao } = useConfirmacao();
 
-  function alternarModo(nome) {
+  async function alternarModo(nome) {
     const item = modos.find((m) => m.nome === nome);
     if (!item) return;
 
     if (item.ativo) {
-      if (!window.confirm(`Remover o modo "${nome}" da câmera?`)) return;
+      const ok = await confirmar({
+        titulo: 'Remover modo?',
+        descricao: `Remover o modo "${nome}" da câmera?`,
+        rotuloConfirmar: 'Remover',
+        destrutivo: true,
+      });
+      if (!ok) return;
 
       if (item.custom && nome !== 'IA' && nome !== 'Estudo') {
         setModos((atual) => atual.filter((m) => m.nome !== nome));
@@ -308,6 +319,7 @@ export function CameraModos({ onVoltar }) {
           </button>
         ))}
       </nav>
+      {dialogoConfirmacao}
     </div>
   );
 }

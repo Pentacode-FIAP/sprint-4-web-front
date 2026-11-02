@@ -1,16 +1,13 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import { carregar, salvar } from '../lib/storage';
-import { gerarExercicios } from '../lib/gemini';
-import { tempoLeituraMin, embaralhar } from '../lib/math';
-import { Toast } from '../components/Toast';
-import { ExercicioLista } from '../components/ExercicioLista';
+import { useColecao } from '../../hooks/useColecao';
+import { gerarExercicios } from '../../lib/gemini';
+import { tempoLeituraMin, embaralhar } from '../../lib/math';
+import { Toast } from '../../components/Toast';
+import { ExercicioLista } from '../../components/ExercicioLista';
 
 export function ResumoDetalhe({ resumo, onFechar }) {
-  const [exercicios, setExercicios] = useState(() => carregar('estudos:exercicios', []));
-  useEffect(() => {
-    salvar('estudos:exercicios', exercicios);
-  }, [exercicios]);
+  const { itens: exercicios, adicionar } = useColecao('exercicios');
 
   const exercicio = exercicios.find((e) => e.resumoId === resumo.id);
 
@@ -27,10 +24,7 @@ export function ResumoDetalhe({ resumo, onFechar }) {
     setErro(null);
     try {
       const itens = await gerarExercicios(resumo.conteudo);
-      setExercicios([
-        ...exercicios,
-        { id: Date.now(), resumoId: resumo.id, itens, criadoEm: new Date().toISOString() },
-      ]);
+      adicionar({ resumoId: resumo.id, itens, criadoEm: new Date().toISOString() });
     } catch {
       setErro('Erro ao gerar, tente novamente.');
     } finally {

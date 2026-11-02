@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Camera, Upload } from 'lucide-react';
-import { carregar, salvar } from '../lib/storage';
-import { dataLocal } from '../lib/date';
-import { fileToDataUrl } from '../lib/images';
+import { useColecao } from '../../hooks/useColecao';
+import { dataLocal } from '../../lib/date';
+import { fileToDataUrl } from '../../lib/images';
 import { FotoDetalhe } from './FotoDetalhe';
-import { Header } from '../components/Header';
-import { Toast } from '../components/Toast';
+import { Header } from '../../components/Header';
+import { Toast } from '../../components/Toast';
 
 function agruparPorData(fotos) {
   const hoje = dataLocal(new Date());
@@ -25,10 +25,7 @@ function agruparPorData(fotos) {
 }
 
 export function Galeria() {
-  const [fotos, setFotos] = useState(() => carregar('estudos:fotos', []));
-  useEffect(() => {
-    salvar('estudos:fotos', fotos);
-  }, [fotos]);
+  const { itens: fotos, adicionar, atualizar } = useColecao('fotos');
 
   const [selecionada, setSelecionada] = useState(null);
   const [toast, setToast] = useState(null);
@@ -38,17 +35,15 @@ export function Galeria() {
   async function aoSelecionarArquivos(e) {
     const arquivos = e.target.files;
     if (!arquivos) return;
-    const novas = [];
     for (const arquivo of Array.from(arquivos)) {
       try {
         const dataUrl = await fileToDataUrl(arquivo);
-        novas.push({ id: Date.now() + novas.length, dataUrl, dataUpload: new Date().toISOString() });
+        if (!adicionar({ dataUrl, dataUpload: new Date().toISOString() })) break;
       } catch {
-        setToast({ tipo: 'erro', mensagem: 'Erro ao salvar foto — armazenamento cheio ou arquivo inválido.' });
+        setToast({ tipo: 'erro', mensagem: 'Erro ao processar foto — arquivo inválido.' });
         break;
       }
     }
-    if (novas.length) setFotos([...fotos, ...novas]);
     e.target.value = '';
   }
 
@@ -91,9 +86,7 @@ export function Galeria() {
       {selecionada && (
         <FotoDetalhe
           foto={selecionada}
-          onSalvarOcr={(id, texto) =>
-            setFotos(fotos.map((f) => (f.id === id ? { ...f, ocrText: texto } : f)))
-          }
+          onSalvarOcr={(id, texto) => atualizar(id, { ocrText: texto })}
           onFechar={() => setSelecionada(null)}
         />
       )}

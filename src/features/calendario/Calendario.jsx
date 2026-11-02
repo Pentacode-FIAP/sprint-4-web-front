@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react';
-import { carregar, salvar } from '../lib/storage';
-import { dataLocal } from '../lib/date';
-import { diasRestantes } from '../lib/math';
+import { useColecao } from '../../hooks/useColecao';
+import { dataLocal } from '../../lib/date';
+import { diasRestantes } from '../../lib/math';
 import { EventoForm } from './EventoForm';
-import { Header } from '../components/Header';
+import { Header } from '../../components/Header';
+import { useConfirmacao } from '../../hooks/useConfirmacao';
 
 const DIAS_SEMANA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -14,16 +15,15 @@ function isoData(d) {
   return dataLocal(d);
 }
 
-export function Calendario({ materias, setMaterias }) {
+export function Calendario() {
   const [referencia, setReferencia] = useState(() => new Date());
   const [selecionado, setSelecionado] = useState(() => isoData(new Date()));
   const [formAberto, setFormAberto] = useState(false);
+  const { confirmar, dialogoConfirmacao } = useConfirmacao();
   const [eventoEditando, setEventoEditando] = useState(undefined);
 
-  const [eventos, setEventos] = useState(() => carregar('estudos:eventos', []));
-  useEffect(() => {
-    salvar('estudos:eventos', eventos);
-  }, [eventos]);
+  const { itens: eventos, adicionar, atualizar, remover } = useColecao('eventos');
+  const { itens: materias } = useColecao('materias');
 
   const ano = referencia.getFullYear();
   const mes = referencia.getMonth();
@@ -55,11 +55,8 @@ export function Calendario({ materias, setMaterias }) {
   }
 
   function salvarEvento(dados, id) {
-    if (id !== undefined) {
-      setEventos(eventos.map((e) => (e.id === id ? { ...e, ...dados } : e)));
-    } else {
-      setEventos([...eventos, { ...dados, id: Date.now() }]);
-    }
+    if (id !== undefined) return atualizar(id, dados);
+    return adicionar(dados) !== null;
   }
 
   function novoLembrete() {
@@ -72,9 +69,15 @@ export function Calendario({ materias, setMaterias }) {
     setFormAberto(true);
   }
 
-  function excluirEvento(evento) {
-    if (evento.id === undefined || !window.confirm(`Excluir o lembrete “${evento.titulo}”?`)) return;
-    setEventos(eventos.filter((e) => e.id !== evento.id));
+  async function excluirEvento(evento) {
+    if (evento.id === undefined) return;
+    const ok = await confirmar({
+      titulo: 'Excluir lembrete?',
+      descricao: `Excluir o lembrete “${evento.titulo}”? Esta ação não pode ser desfeita.`,
+      rotuloConfirmar: 'Excluir',
+      destrutivo: true,
+    });
+    if (ok) remover(evento.id);
   }
 
   return (
@@ -144,12 +147,11 @@ export function Calendario({ materias, setMaterias }) {
         <EventoForm
           dataInicial={selecionado}
           evento={eventoEditando}
-          materias={materias}
-          setMaterias={setMaterias}
           onSalvar={salvarEvento}
           onFechar={() => setFormAberto(false)}
         />
       )}
+      {dialogoConfirmacao}
     </div>
   );
 }

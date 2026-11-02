@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { carregar } from '../lib/storage';
-import { ExercicioLista } from '../components/ExercicioLista';
-import { Header } from '../components/Header';
+import { useColecao } from '../../hooks/useColecao';
+import { ExercicioLista } from '../../components/ExercicioLista';
+import { Header } from '../../components/Header';
 
 export function Exercicios() {
-  const [resumos] = useState(() => carregar('estudos:resumos', []));
-  const [exercicios] = useState(() => carregar('estudos:exercicios', []));
+  const { itens: resumos } = useColecao('resumos');
+  const { itens: exercicios } = useColecao('exercicios');
   const [resumoId, setResumoId] = useState(undefined);
 
   const ativo = resumoId ?? resumos[0]?.id;

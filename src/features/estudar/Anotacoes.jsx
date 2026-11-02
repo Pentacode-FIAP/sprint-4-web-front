@@ -1,16 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Pencil, Plus, Trash2, X } from 'lucide-react';
-import { carregar, salvar } from '../lib/storage';
-import { MateriaSelect } from '../components/MateriaSelect';
-import { Header } from '../components/Header';
-import { Toast } from '../components/Toast';
+import { useColecao } from '../../hooks/useColecao';
+import { MateriaSelect } from '../../components/MateriaSelect';
+import { Header } from '../../components/Header';
+import { Toast } from '../../components/Toast';
+import { useConfirmacao } from '../../hooks/useConfirmacao';
 
-export function Anotacoes({ materias, setMaterias }) {
-  const [anotacoes, setAnotacoes] = useState(() => carregar('estudos:anotacoes', []));
-  useEffect(() => {
-    salvar('estudos:anotacoes', anotacoes);
-  }, [anotacoes]);
-  const [resumos] = useState(() => carregar('estudos:resumos', []));
+export function Anotacoes() {
+  const { itens: anotacoes, adicionar, atualizar, remover } = useColecao('anotacoes');
+  const { itens: resumos } = useColecao('resumos');
+  const { confirmar, dialogoConfirmacao } = useConfirmacao();
 
   const anotacoesOrdenadas = [...anotacoes].sort((a, b) => b.data.localeCompare(a.data));
 
@@ -55,9 +54,15 @@ export function Anotacoes({ materias, setMaterias }) {
     setFormAberto(false);
   }
 
-  function excluirAnotacao(id, tituloAnotacao) {
-    if (id === undefined || !window.confirm(`Excluir a anotação “${tituloAnotacao}”?`)) return;
-    setAnotacoes(anotacoes.filter((a) => a.id !== id));
+  async function excluirAnotacao(id, tituloAnotacao) {
+    if (id === undefined) return;
+    const ok = await confirmar({
+      titulo: 'Excluir anotação?',
+      descricao: `Excluir a anotação “${tituloAnotacao}”? Esta ação não pode ser desfeita.`,
+      rotuloConfirmar: 'Excluir',
+      destrutivo: true,
+    });
+    if (ok) remover(id);
   }
 
   function salvarAnotacao() {
@@ -69,14 +74,10 @@ export function Anotacoes({ materias, setMaterias }) {
       resumoId,
       data: new Date().toISOString(),
     };
-    try {
-      if (editandoId !== undefined) {
-        setAnotacoes(anotacoes.map((a) => (a.id === editandoId ? { ...a, ...dados } : a)));
-      } else {
-        setAnotacoes([...anotacoes, { ...dados, id: Date.now() }]);
-      }
+    const ok = editandoId !== undefined ? atualizar(editandoId, dados) : adicionar(dados) !== null;
+    if (ok) {
       fecharFormulario();
-    } catch {
+    } else {
       setErro('Erro ao salvar anotação, tente novamente.');
     }
   }
@@ -123,7 +124,7 @@ export function Anotacoes({ materias, setMaterias }) {
             </div>
             <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Título" />
             <textarea value={conteudo} onChange={(e) => setConteudo(e.target.value)} placeholder="Escreva sua anotação" rows={5} />
-            <MateriaSelect value={materiaId} onChange={setMateriaId} materias={materias} setMaterias={setMaterias} />
+            <MateriaSelect value={materiaId} onChange={setMateriaId} />
             <select value={resumoId ?? ''} onChange={(e) => setResumoId(e.target.value ? Number(e.target.value) : undefined)}>
               <option value="">Sem resumo vinculado</option>
               {resumos.map((r) => (
@@ -138,6 +139,7 @@ export function Anotacoes({ materias, setMaterias }) {
       )}
 
       {erro && <Toast message={erro} onClose={() => setErro(null)} />}
+      {dialogoConfirmacao}
     </div>
   );
 }

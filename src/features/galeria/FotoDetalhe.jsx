@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Copy } from 'lucide-react';
-import { runOcr } from '../lib/gemini';
-import { Toast } from '../components/Toast';
+import { runOcr } from '../../lib/gemini';
+import { Toast } from '../../components/Toast';
 
 export function FotoDetalhe({ foto, onFechar, onSalvarOcr }) {
   const [texto, setTexto] = useState(foto.ocrText ?? '');

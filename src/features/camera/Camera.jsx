@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Toast } from '../components/Toast';
-import { carregar, salvar } from '../lib/storage';
-import { runOcr } from '../lib/gemini';
+import { Toast } from '../../components/Toast';
+import { useColecao } from '../../hooks/useColecao';
+import { MAX_DIM_FOTO, QUALIDADE_FOTO } from '../../lib/images';
+import { runOcr } from '../../lib/gemini';
 import { OcrPanel } from './OcrPanel';
 import styles from './Camera.module.css';
 
@@ -32,6 +33,7 @@ const MODOS_TABS = [
 const ZOOMS = ['0.6', '1', '2'];
 
 export function Camera({ onAbrirConfig, onAbrirEstudos }) {
+  const { adicionar: adicionarFoto } = useColecao('fotos');
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -100,7 +102,7 @@ export function Camera({ onAbrirConfig, onAbrirEstudos }) {
     });
   }
 
-  async function capturarFrame({ maxDim = 1280, quality = 0.82 } = {}) {
+  async function capturarFrame({ maxDim = MAX_DIM_FOTO, quality = QUALIDADE_FOTO } = {}) {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas || semCamera || video.readyState < 2) return null;
@@ -124,14 +126,9 @@ export function Camera({ onAbrirConfig, onAbrirEstudos }) {
     const dataUrl = await capturarFrame();
     if (!dataUrl) return;
 
-    try {
-      const fotos = carregar('estudos:fotos', []);
-      salvar('estudos:fotos', [
-        ...fotos,
-        { id: Date.now(), dataUrl, dataUpload: new Date().toISOString() },
-      ]);
+    if (adicionarFoto({ dataUrl, dataUpload: new Date().toISOString() })) {
       setToast({ tipo: 'sucesso', mensagem: 'Foto salva na galeria' });
-    } catch {
+    } else {
       setToast({ tipo: 'erro', mensagem: 'Erro ao salvar foto, tente novamente.' });
     }
   }
