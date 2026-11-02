@@ -1,3 +1,5 @@
+import { BTN_PRIMARIO } from './estilosBotao';
+
 export function EmptyState({ Icone, titulo, descricao, acao }) {
   return (
     <div className="flex animate-rise-in flex-col items-center gap-1 rounded-lg border border-dashed border-border-strong bg-surface px-5 py-[34px] text-center">
@@ -13,7 +15,7 @@ export function EmptyState({ Icone, titulo, descricao, acao }) {
         <button
           type="button"
           onClick={acao.onClick}
-          className="mt-3.5 !min-h-11 !rounded-md !border-accent !bg-accent px-4 font-semibold !text-accent-contrast hover:!bg-accent-hover"
+          className={`${BTN_PRIMARIO} mt-3.5`}
         >
           {acao.rotulo}
         </button>

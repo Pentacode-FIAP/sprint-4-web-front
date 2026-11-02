@@ -1,6 +1,14 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { Sheet } from '../../components/Sheet';
+import { Segmented } from '../../components/Segmented';
 import { MateriaSelect } from '../../components/MateriaSelect';
+import { BTN_PRIMARIO, CAMPO, CAMPO_ROTULO } from '../../components/estilosBotao';
+
+const TIPOS = [
+  { id: 'prova', label: 'Prova' },
+  { id: 'atividade', label: 'Atividade' },
+  { id: 'revisao', label: 'Revisão' },
+];
 
 export function EventoForm({ dataInicial, evento, onFechar, onSalvar }) {
   const [titulo, setTitulo] = useState(evento?.titulo ?? '');
@@ -9,8 +17,10 @@ export function EventoForm({ dataInicial, evento, onFechar, onSalvar }) {
   const [tipo, setTipo] = useState(evento?.tipo ?? 'prova');
   const [erro, setErro] = useState(null);
 
-  function confirmar() {
-    if (!titulo.trim() || !data) return;
+  const valido = titulo.trim().length > 0 && Boolean(data);
+
+  function salvar() {
+    if (!valido) return;
     if (onSalvar({ titulo: titulo.trim(), data, materiaId, tipo }, evento?.id)) {
       onFechar();
     } else {
@@ -19,25 +29,38 @@ export function EventoForm({ dataInicial, evento, onFechar, onSalvar }) {
   }
 
   return (
-    <div className="overlay">
-      <div className="overlay-content">
-        <div className="overlay-header">
-          <h2>{evento ? 'Editar lembrete' : 'Novo lembrete'}</h2>
-          <button onClick={onFechar}>
-            <X size={18} strokeWidth={2} /> Fechar
-          </button>
-        </div>
-        <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Título" />
-        <input type="date" value={data} onChange={(e) => setData(e.target.value)} />
-        <MateriaSelect value={materiaId} onChange={setMateriaId} />
-        <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
-          <option value="prova">Prova</option>
-          <option value="atividade">Atividade</option>
-          <option value="revisao">Revisão</option>
-        </select>
-        {erro && <p className="meta" style={{ color: 'var(--prova)' }}>{erro}</p>}
-        <button className="btn-primary" onClick={confirmar}>{evento ? 'Salvar alterações' : 'Salvar'}</button>
+    <Sheet
+      titulo={evento ? 'Editar lembrete' : 'Novo lembrete'}
+      onFechar={onFechar}
+      footer={
+        <button type="button" onClick={salvar} disabled={!valido} className={`${BTN_PRIMARIO} w-full`}>
+          {evento ? 'Salvar alterações' : 'Salvar lembrete'}
+        </button>
+      }
+    >
+      <label className="mb-3.5 block">
+        <span className={CAMPO_ROTULO}>Título</span>
+        <input
+          value={titulo}
+          onChange={(e) => setTitulo(e.target.value)}
+          placeholder="Ex.: Prova de Cálculo I"
+          className={CAMPO}
+        />
+      </label>
+
+      <label className="mb-3.5 block">
+        <span className={CAMPO_ROTULO}>Data</span>
+        <input type="date" value={data} onChange={(e) => setData(e.target.value)} className={CAMPO} />
+      </label>
+
+      <MateriaSelect value={materiaId} onChange={setMateriaId} />
+
+      <div className="mb-3.5">
+        <span className={CAMPO_ROTULO}>Tipo</span>
+        <Segmented itens={TIPOS} valor={tipo} onChange={setTipo} rotulo="Tipo do lembrete" modo="radio" />
       </div>
-    </div>
+
+      {erro && <p role="alert" className="m-0 text-[13px] leading-normal text-danger">{erro}</p>}
+    </Sheet>
   );
 }

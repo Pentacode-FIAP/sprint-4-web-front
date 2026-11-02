@@ -8,9 +8,9 @@ import { Camera } from 'lucide-react';
 export function ScreenHeader({ title, subtitle, actions, subtitleBelow = false }) {
   const subtitulo = <p className="m-0 text-sm text-text-muted">{subtitle}</p>;
   return (
-    <header className="sticky top-0 z-10 flex flex-wrap items-start justify-between gap-x-3 gap-y-1 bg-bg/85 pt-2.5 pb-3.5 backdrop-blur-lg">
+    <header className="sticky top-0 z-10 -mx-4 flex flex-wrap items-start justify-between gap-x-3 gap-y-1 bg-bg/85 px-4 pt-5 pb-3.5 backdrop-blur-lg">
       <div className="min-w-0 flex-1">
-        <h1 className="!mb-0.5 !text-[22px] font-bold">{title}</h1>
+        <h1 className="mb-0.5 text-[22px] leading-tight font-bold">{title}</h1>
         {!subtitleBelow && subtitulo}
       </div>
       <div className="flex flex-none items-center gap-1.5">

@@ -1,7 +1,8 @@
 import { useEffect, useId, useState } from 'react';
-import { Materias } from '../features/materias/Materias';
+import { MateriasScreen } from '../features/materias/MateriasScreen';
 import { Sheet } from './Sheet';
 import { useColecao } from '../hooks/useColecao';
+import { BTN_TEXTO, CAMPO } from './estilosBotao';
 
 export function MateriaSelect({ value, onChange, permitirVazio = true }) {
   const { itens: materias } = useColecao('materias');
@@ -27,7 +28,7 @@ export function MateriaSelect({ value, onChange, permitirVazio = true }) {
           <button
             type="button"
             onClick={() => setGerenciando(true)}
-            className="!min-h-11 !rounded-sm !border-0 !bg-transparent !px-2 !py-1 text-xs font-semibold text-accent hover:!bg-accent-soft"
+            className={BTN_TEXTO}
           >
             {materias.length === 0 ? 'Criar matéria' : 'Gerenciar'}
           </button>
@@ -36,7 +37,7 @@ export function MateriaSelect({ value, onChange, permitirVazio = true }) {
           id={selectId}
           value={value ?? ''}
           onChange={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}
-          className="!mb-0 min-h-11"
+          className={CAMPO}
         >
           {permitirVazio && <option value="">Sem matéria</option>}
           {materias.map((m) => (
@@ -46,7 +47,7 @@ export function MateriaSelect({ value, onChange, permitirVazio = true }) {
       </div>
       {gerenciando && (
         <Sheet titulo="Matérias" onFechar={() => setGerenciando(false)}>
-          <Materias />
+          <MateriasScreen />
         </Sheet>
       )}
     </>

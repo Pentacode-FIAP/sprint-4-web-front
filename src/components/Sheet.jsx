@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
+import { BTN_ICONE_SUTIL } from './estilosBotao';
 
 /**
  * Painel modal sobre `<dialog>` nativo: aberto enquanto estiver montado.
@@ -41,12 +42,12 @@ export function Sheet({ titulo, onFechar, children, footer }) {
     >
       <span className="mx-auto mt-2.5 h-1 w-9.5 flex-none rounded-full bg-border-strong md:hidden" aria-hidden="true" />
       <div className="flex flex-none items-center justify-between gap-3 px-4 pt-3 pb-3.5">
-        <h2 id={tituloId} className="!text-lg font-semibold">{titulo}</h2>
+        <h2 id={tituloId} className="text-lg font-semibold">{titulo}</h2>
         <button
           type="button"
           onClick={onFechar}
           aria-label="Fechar"
-          className="!m-0 flex !h-11 !min-w-11 items-center justify-center !rounded-sm !border-0 !bg-transparent !p-0 text-text-muted hover:!bg-accent-soft hover:text-accent"
+          className={BTN_ICONE_SUTIL}
         >
           <X size={18} strokeWidth={2} />
         </button>

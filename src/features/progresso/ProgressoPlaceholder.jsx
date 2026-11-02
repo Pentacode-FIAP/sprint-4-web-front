@@ -1,6 +1,6 @@
-import { Header } from '../../components/Header';
+import { ScreenHeader } from '../../components/ScreenHeader';
 
 // Provisório até a Task 8 (tela de Progresso).
 export function ProgressoPlaceholder() {
-  return <Header title="Progresso" subtitle="Em breve." />;
+  return <ScreenHeader title="Progresso" subtitle="Em breve." />;
 }

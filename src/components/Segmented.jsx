@@ -24,7 +24,7 @@ export function Segmented({ itens, valor, onChange, rotulo, modo = 'tabs' }) {
             aria-selected={ehTabs ? ativo : undefined}
             aria-checked={ehTabs ? undefined : ativo}
             onClick={() => onChange(item.id)}
-            className={`relative z-10 !min-h-11 !rounded-[10px] !border-0 !bg-transparent !px-2.5 !py-2 text-[13px] font-semibold transition-colors active:!scale-100 ${
+            className={`relative z-10 min-h-11 cursor-pointer rounded-[10px] px-2.5 py-2 text-[13px] font-semibold transition-colors ${
               ativo ? 'text-text' : 'text-text-muted hover:text-text-2'
             }`}
           >

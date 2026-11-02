@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react';
+import { BTN_DESTRUTIVO, BTN_PRIMARIO, BTN_SECUNDARIO } from './estilosBotao';
 
 /**
  * Diálogo de confirmação sobre `<dialog>` nativo. Esc e clique no fundo cancelam.
@@ -40,23 +41,21 @@ export function ConfirmDialog({ pedido, onResponder }) {
       }}
       className="m-auto w-[calc(100%-3rem)] max-w-xs rounded-lg bg-surface p-5 text-text shadow-4 backdrop:animate-fade-in backdrop:bg-fora/45 open:animate-pop-in"
     >
-      <h2 id={tituloId} className="!mb-1.5 !text-base font-semibold">{pedido.titulo}</h2>
+      <h2 id={tituloId} className="mb-1.5 text-base font-semibold">{pedido.titulo}</h2>
       <p id={descricaoId} className="mb-[18px] text-[13.5px] leading-[1.55] text-text-muted">{pedido.descricao}</p>
       <div className="flex gap-2">
         <button
           ref={cancelarRef}
           type="button"
           onClick={() => onResponder(false)}
-          className="!min-h-11 flex-1 !rounded-md !border-border !bg-surface font-medium text-text hover:!bg-surface-2"
+          className={`${BTN_SECUNDARIO} flex-1`}
         >
           Cancelar
         </button>
         <button
           type="button"
           onClick={() => onResponder(true)}
-          className={`!min-h-11 flex-1 !rounded-md !border-transparent font-semibold !text-white ${
-            pedido.destrutivo ? '!bg-danger hover:!bg-red-700' : '!bg-accent hover:!bg-accent-hover'
-          }`}
+          className={`${pedido.destrutivo ? BTN_DESTRUTIVO : BTN_PRIMARIO} flex-1`}
         >
           {pedido.rotuloConfirmar}
         </button>
