@@ -1,71 +1,101 @@
-# JOVI CAM
+# JOVI Cam
 
-O novo ecossistema JOVI que integra canera e o app de estuddos para apoiar a rotina de estudos. O projeto permite registrar matérias, anotações, fotos e eventos, além de concentrar resumos, exercícios e um chat de apoio em uma única interface.
+Câmera simplificada, guiada por IA e integrada a um app de estudos. Projeto do grupo **Pentacode** para o **Challenge FIAP x JOVI Mobile**.
 
-## Funcionalidades
+> ## Aviso: a IA não funciona no `localhost`
+>
+> Rodando localmente (`npm run dev`, `npm run preview`), **os recursos de IA não funcionam**: ao usá-los, o app mostra a mensagem *"A IA não está disponível nesta execução local. Use o site publicado para testar os recursos de IA."*
+> Os recursos de IA estão disponíveis **no site publicado** (link na seção [Deploy](#deploy)).
+> Todo o resto do app funciona normalmente no `localhost`.
 
-- Captura e organização de fotos de anotações e conteúdos de estudo.
-- Cadastro de matérias, anotações e eventos no calendário.
-- Galeria para consultar o material salvo.
-- Criação de resumos e exercícios a partir do conteúdo estudado.
-- Chat para tirar dúvidas sobre os materiais registrados.
-- Persistência dos dados no armazenamento local do navegador.
+## Sobre o projeto
 
-## Requisitos
+A JOVI Mobile apresentou dois problemas: a interface de câmera dos aparelhos tem muitos modos e configurações, e a marca não oferecia nada pensado para estudantes. O JOVI Cam junta os dois em um produto só: uma câmera com poucos modos e um app de estudos conectado a ela.
 
-- [Node.js](https://nodejs.org/) 18 ou superior.
-- npm (instalado junto ao Node.js).
-- Uma chave da API do Google Gemini para utilizar os recursos de IA.
+**Câmera**
+- Modos IA, Estudo, Foto, Noite e Vídeo, com onboarding no primeiro acesso e tela de configuração de modos (`/camera/modos`).
+- No modo Estudo, a foto vai para a galeria e o botão "Copiar texto" extrai o texto da imagem com IA (OCR).
 
-## Como rodar o projeto
+**App de estudos**
+- Matérias, resumos (a partir de fotos ou de texto colado), anotações e lembretes no calendário.
+- Exercícios de múltipla escolha com correção, dicas e explicação.
+- Simulados com tempo, nota e revisão; histórico dos últimos simulados.
+- Plano para provas no calendário (revisão, treino e simulado).
+- Progresso: ofensiva, meta diária, gráficos, insights e fila de revisão dos erros.
+- Chat com IA sobre o material salvo.
 
-1. Clone o repositório e acesse a pasta do projeto:
+### Evolução em relação à Sprint 3
 
-   ```bash
-   git clone <URL_DO_REPOSITORIO>
-   cd Spirnt-3-Web-Development
-   ```
+A Sprint 3 era um app React + Vite sem rotas e sem Tailwind. Nesta entrega o projeto evoluiu para:
 
-2. Instale as dependências:
+- rotas com `react-router-dom` e layout responsivo (mobile, tablet e desktop);
+- estilização com Tailwind CSS;
+- lógica separada da interface em hooks customizados (`src/hooks`);
+- novas funcionalidades: exercícios com tentativas e fila de revisão, simulados, plano para provas, tela de Progresso, câmera com hook próprio e dados de exemplo.
 
-   ```bash
-   npm install
-   ```
+## Tecnologias
 
-3. Crie um arquivo chamado `.env` na raiz do projeto e adicione sua chave do Gemini:
+- React 18 e JavaScript (JSX)
+- Vite 5
+- react-router-dom 6
+- Tailwind CSS 4
+- lucide-react (ícones)
+- Google Gemini, chamado diretamente pelo navegador com `fetch`
+- `localStorage` para guardar os dados
 
-   ```env
-   VITE_GEMINI_API_KEY=sua_chave_aqui
-   ```
+## Instalação
 
-4. Inicie o ambiente de desenvolvimento:
-
-   ```bash
-   npm run dev
-   ```
-
-5. Abra no navegador a URL exibida pelo Vite — normalmente `http://localhost:5173`.
-
-## Outros comandos
-
-Para gerar a versão de produção:
+Requisitos: [Node.js](https://nodejs.org/) 20 ou superior e npm.
 
 ```bash
-npm run build
+npm install
 ```
 
-Para visualizar localmente a versão gerada:
+## Execução
 
 ```bash
-npm run preview
+npm run dev       # servidor de desenvolvimento (http://localhost:5173)
+npm run build     # gera a versão de produção em dist/
+npm run preview   # serve localmente a versão gerada
 ```
 
-## Deploy na Vercel
+Não é preciso criar nenhum arquivo `.env` nem configurar nada para rodar. Se o navegador pedir, permita o uso da câmera; sem câmera, o restante do app continua funcionando.
 
-Acesse nosso projeto no link abaixo:
+## Como testar sem IA
 
-https://sprint-3-web-development-nine.vercel.app/
+1. Rode `npm run dev` e abra a URL exibida.
+2. No primeiro acesso aparece o onboarding da câmera. Conclua-o ou pule.
+3. Abra **Progresso** (`/progresso`) e use o botão **Preencher com dados de exemplo** (depois de preenchido, o botão passa a ser **Recarregar dados de exemplo**). Isso substitui os dados do navegador por matérias, fotos, resumos, exercícios, simulados, lembretes e um histórico de estudo de demonstração, após uma confirmação.
+4. Explore `/estudar`, `/galeria` e `/calendario` (inclusive o plano para provas). Em `/chat`, sem a IA, a tela mostra o aviso de que ela não está disponível e o campo de mensagem fica desabilitado; nada é gravado.
 
-## Uso de IA no projeto
+Tudo isso funciona sem IA. Apenas a geração de conteúdo (resumos, questões, simulados, dicas, OCR e respostas do chat) depende do site publicado.
 
-A Inteligência Artificial, via API do Google Gemini, é usada para extrair texto de fotos de anotações (OCR), gerar resumos organizados a partir das imagens, criar exercícios com diferentes níveis de dificuldade e responder às perguntas no chat de estudos.
+## Servidores, autenticação e dados
+
+- **Não há back-end.** O app é só front-end; não existe servidor próprio nem banco de dados.
+- **Não há login, usuários nem senhas.** Todas as rotas são públicas.
+- **Os dados ficam no `localStorage` do navegador** (no aparelho de quem usa). Limpar os dados do site apaga tudo.
+
+Rotas: `/` (câmera), `/camera/modos`, `/progresso`, `/estudar`, `/chat`, `/galeria`, `/calendario`; qualquer outro caminho mostra a página "não encontrada".
+
+## Uso de IA
+
+**No produto:** o JOVI Cam usa o Google Gemini, chamado pelo navegador, para extrair texto de fotos (OCR), gerar resumos, criar questões de múltipla escolha, montar simulados, dar dicas e explicações nas questões e responder às dúvidas no chat de estudos. Esses recursos funcionam no site publicado; no `localhost` o app avisa que a IA não está disponível.
+
+**No desenvolvimento:** usamos agentes de IA como auxílio no desenvolvimento do projeto.
+
+## Deploy
+
+A definir na Task 14
+
+## Integrantes
+
+Grupo **Pentacode**:
+
+- Arthur Jircik - RM 570754
+- Andre Luiz - RM 573575
+- Felipe Garcia - RM 571741
+- Guilherme Amorim - RM 569024
+- Matheus Marcelino - RM 571472
+
+A lista também está em `INTEGRANTES.TXT`.
