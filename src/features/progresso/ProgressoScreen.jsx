@@ -95,7 +95,7 @@ export function ProgressoScreen() {
           {historico && <div className="pb-6">{historico}</div>}
         </>
       ) : (
-        <div className="grid animate-rise-in gap-3 pb-6 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid animate-rise-in gap-3 pb-6 md:grid-cols-2 xl:grid-cols-3">
           <section className={`${CARTAO} flex flex-col items-center gap-2 text-center`}>
             <div className="flex items-center gap-1.5 text-accent">
               <Flame size={22} strokeWidth={2.2} aria-hidden="true" />
@@ -107,7 +107,7 @@ export function ProgressoScreen() {
             <Donut
               pct={(p.feitasHoje / p.meta) * 100}
               tamanho={92}
-              rotulo={`${p.feitasHoje} de ${p.meta} questões da meta de hoje`}
+              rotulo={`${p.feitasHoje} de ${p.meta} ${p.meta === 1 ? 'questão' : 'questões'} da meta de hoje`}
             />
             <span className="font-mono text-xs text-text-muted">
               {p.feitasHoje}/{p.meta} hoje
@@ -119,14 +119,14 @@ export function ProgressoScreen() {
             <BarrasSemana dados={p.serie} meta={p.meta} />
           </section>
 
-          <section className={`${CARTAO} flex flex-col items-center gap-2 lg:col-span-2 xl:col-span-1 xl:row-span-2`}>
+          <section className={`${CARTAO} flex flex-col items-center gap-2 md:col-span-2 xl:col-span-1 xl:row-span-2`}>
             <h2 className={`${TITULO} mb-0 self-start`}>Acerto geral</h2>
             <Donut
               pct={p.acerto.pct}
-              rotulo={`${p.acerto.pct}% de acerto em ${p.acerto.total} questões`}
+              rotulo={`${p.acerto.pct}% de acerto em ${p.acerto.total} ${p.acerto.total === 1 ? 'questão' : 'questões'}`}
             />
             <span className="font-mono text-xs text-text-muted">
-              {p.acerto.total} questões respondidas
+              {p.acerto.total} {p.acerto.total === 1 ? 'questão respondida' : 'questões respondidas'}
             </span>
             <div className="mt-2 flex w-full flex-col gap-3 text-left">
               {NIVEIS_DIFICULDADE.filter((n) => p.dificuldades[n].total > 0).map((n) => (
@@ -175,7 +175,7 @@ export function ProgressoScreen() {
             type="button"
             onClick={preencherComDadosDeExemplo}
             disabled={demo.carregando}
-            className={`${BTN_SECUNDARIO} lg:col-span-2 xl:col-span-3`}
+            className={`${BTN_SECUNDARIO} md:col-span-2 xl:col-span-3`}
           >
             <Sparkles size={17} strokeWidth={2} aria-hidden="true" />
             {demo.carregando ? 'Preenchendo…' : 'Recarregar dados de exemplo'}

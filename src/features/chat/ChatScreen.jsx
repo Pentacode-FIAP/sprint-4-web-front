@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Send, Sparkles } from 'lucide-react';
 import { useChat } from '../../hooks/useChat';
-import { Toast } from '../../components/Toast';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { EmptyState } from '../../components/EmptyState';
-import { BTN_PRIMARIO_ICONE_REDONDO, CAMPO_REDONDO } from '../../components/estilosBotao';
+import { MENSAGEM_SEM_CHAVE } from '../../lib/gemini';
+import { BTN_PRIMARIO_ICONE_REDONDO, BTN_SECUNDARIO, CAMPO_REDONDO } from '../../components/estilosBotao';
 
 const SUGESTOES = [
   'Do que trata meu último resumo?',
@@ -13,18 +13,28 @@ const SUGESTOES = [
 ];
 
 export function ChatScreen() {
-  const { mensagens, enviando, erro, enviar, limpar } = useChat();
+  const { mensagens, enviando, erro, semChave, podeTentarDeNovo, enviar, tentarDeNovo } = useChat();
   const [texto, setTexto] = useState('');
   const mensagensRef = useRef(null);
+  const campoRef = useRef(null);
+  const devolverFoco = useRef(false);
 
   useEffect(() => {
     const el = mensagensRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [mensagens.length, enviando]);
 
+  // O campo fica desabilitado enquanto envia e perde o foco: devolve quando liberar.
+  useEffect(() => {
+    if (enviando || !devolverFoco.current) return;
+    devolverFoco.current = false;
+    campoRef.current?.focus();
+  }, [enviando]);
+
   async function enviarTexto(conteudo) {
     const limpo = conteudo.trim();
-    if (!limpo || enviando) return;
+    if (!limpo || enviando || semChave) return;
+    devolverFoco.current = true;
     setTexto('');
     // Se a mensagem não foi salva (armazenamento cheio), devolve o texto ao campo.
     if (!(await enviar(limpo))) setTexto(limpo);
@@ -48,7 +58,8 @@ export function ChatScreen() {
                   key={s}
                   type="button"
                   onClick={() => enviarTexto(s)}
-                  className="min-h-11 cursor-pointer rounded-full border border-border bg-surface px-3.5 py-2 text-[12.5px] text-text-2 hover:border-accent hover:bg-accent-soft hover:text-accent"
+                  disabled={semChave}
+                  className="min-h-11 cursor-pointer rounded-full border border-border bg-surface px-3.5 py-2 text-[12.5px] text-text-2 hover:border-accent hover:bg-accent-soft hover:text-accent disabled:cursor-default disabled:opacity-45"
                 >
                   {s}
                 </button>
@@ -88,6 +99,22 @@ export function ChatScreen() {
         )}
       </div>
 
+      {semChave && (
+        <p role="status" className="m-0 mb-2.5 flex-none rounded-md border border-border bg-surface-2 px-3.5 py-3 text-[13px] leading-normal text-text-2">
+          {MENSAGEM_SEM_CHAVE}
+        </p>
+      )}
+      {erro && (
+        <div role="alert" className="mb-2.5 flex flex-none flex-wrap items-center justify-between gap-2 rounded-md border border-danger/35 bg-danger-soft px-3.5 py-3 text-[13px] leading-normal text-danger">
+          <span className="min-w-0 [overflow-wrap:anywhere]">{erro}</span>
+          {podeTentarDeNovo && (
+            <button type="button" onClick={tentarDeNovo} className={BTN_SECUNDARIO}>
+              Tentar de novo
+            </button>
+          )}
+        </div>
+      )}
+
       <form
         className="flex flex-none items-end gap-2 border-t border-border pt-2.5"
         onSubmit={(e) => {
@@ -99,13 +126,14 @@ export function ChatScreen() {
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           placeholder="Pergunte sobre seus estudos…"
+          ref={campoRef}
           aria-label="Mensagem"
-          disabled={enviando}
+          disabled={enviando || semChave}
           className={`${CAMPO_REDONDO} flex-1`}
         />
         <button
           type="submit"
-          disabled={enviando || !texto.trim()}
+          disabled={enviando || semChave || !texto.trim()}
           aria-label="Enviar mensagem"
           className={BTN_PRIMARIO_ICONE_REDONDO}
         >
@@ -116,8 +144,6 @@ export function ChatScreen() {
           )}
         </button>
       </form>
-
-      {erro && <Toast message={erro} onClose={limpar} />}
     </div>
   );
 }

@@ -20,6 +20,7 @@ export const TEMPOS = [
 export function useNovoSimulado({ materiaInicial, resumoIdsIniciais, onIniciar }) {
   const { itens: todosResumos } = useColecao('resumos');
   const { adicionar } = useColecao('simulados');
+  const { itens: materias } = useColecao('materias');
   const [materiaId, setMateriaId] = useState(materiaInicial);
   const [qtd, setQtd] = useState('5');
   const [nivel, setNivel] = useState('misto');
@@ -47,7 +48,6 @@ export function useNovoSimulado({ materiaInicial, resumoIdsIniciais, onIniciar }
     setSelecionados(null);
   }, []);
 
-
   async function comecar() {
     if (ocupadoRef.current || materiaId === undefined || fontes.length === 0) return;
     if (semChave) {
@@ -62,7 +62,6 @@ export function useNovoSimulado({ materiaInicial, resumoIdsIniciais, onIniciar }
       const itens = await gerarSimulado(fontes, { qtd: pedidas, nivel });
       // Fechou a configuração enquanto a IA respondia: não abre uma prova que ninguém pediu mais.
       if (!montadoRef.current) return;
-      if (!itens.length) throw new Error('Não há questões nesse nível. Escolha Misto.');
       const dados = {
         materiaId,
         resumoIds: fontes.map((r) => r.id),
@@ -90,7 +89,9 @@ export function useNovoSimulado({ materiaInicial, resumoIdsIniciais, onIniciar }
 
   return {
     materiaId, escolherMateria, qtd, setQtd, nivel, setNivel, tempo, setTempo,
-    resumos, ids, fontes, definirResumos: setSelecionados, gerando, erro: erro ?? (semChave ? MENSAGEM_SEM_CHAVE : null), limparErro: () => setErro(null),
-    semChave, semResumo: materiaId !== undefined && resumos.length === 0, comecar,
+    resumos, ids, fontes, definirResumos: setSelecionados, gerando, erro: erro ?? (semChave ? MENSAGEM_SEM_CHAVE : null),
+    semChave, semResumo: materiaId !== undefined && resumos.length === 0, semMaterias: materias.length === 0,
+    temResumoSemMateria: todosResumos.some((r) => r.materiaId === undefined || !materias.some((m) => m.id === r.materiaId)),
+    comecar,
   };
 }

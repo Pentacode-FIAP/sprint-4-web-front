@@ -37,7 +37,6 @@ export function useAjudaQuestao({ item, escolha, revelado, origem, origemId }) {
     };
     // Resumos/exercícios ficam de fora de propósito: mudar a coleção no meio da
     // conversa não deve refazer a chamada à IA.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto, item, escolha, revelado, origem, origemId, tentativa]);
 
   return {

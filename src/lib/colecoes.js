@@ -20,8 +20,12 @@ export function gravarColecao(nome, itens) {
 }
 
 export function adicionarItem(itens, dados) {
-  const id = itens.reduce((max, i) => (typeof i.id === 'number' && i.id > max ? i.id : max), 0) + 1;
-  const item = { id, ...dados };
+  // Nunca reaproveita um id: ao excluir o último item, o id seguinte seria igual
+  // ao dele e referências antigas (tentativas, simulados) apontariam para o item novo.
+  // `Date.now()` mantém o id acima de qualquer id já usado em sessões anteriores.
+  const maior = itens.reduce((max, i) => (typeof i.id === 'number' && i.id > max ? i.id : max), 0);
+  const id = Math.max(maior + 1, Date.now());
+  const item = { ...dados, id };
   return { itens: [...itens, item], item };
 }
 

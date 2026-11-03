@@ -1,8 +1,11 @@
 {
-  "name": "app-estudos",
+  "name": "jovi-cam",
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

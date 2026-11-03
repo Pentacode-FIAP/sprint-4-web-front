@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
-import { useColecao } from '../../hooks/useColecao';
+import { useMaterias } from '../../hooks/useMaterias';
 import { useConfirmacao } from '../../hooks/useConfirmacao';
 import { Sheet } from '../../components/Sheet';
 import {
@@ -18,7 +18,7 @@ function corPara(nome) {
 
 /** Gerenciador de matérias. Vive dentro do Sheet aberto por `MateriaSelect`. */
 export function MateriasScreen() {
-  const { itens: materias, adicionar, atualizar, remover } = useColecao('materias');
+  const { materias, adicionar, atualizar, removerMateria: excluirMateria } = useMaterias();
   const [nome, setNome] = useState('');
   const [editando, setEditando] = useState(null);
   const [erro, setErro] = useState('');
@@ -52,7 +52,8 @@ export function MateriasScreen() {
       rotuloConfirmar: 'Remover',
       destrutivo: true,
     });
-    if (ok) remover(materia.id);
+    if (!ok) return;
+    setErro(excluirMateria(materia.id) ? '' : 'Não foi possível remover. Tente novamente.');
   }
 
   return (

@@ -83,7 +83,7 @@ export async function gerarResumo(fotos, materiaNome) {
   return callGemini(parts);
 }
 
-/** Padrão usado por quem chama sem opções (ex.: o hook da Sprint 3). */
+/** Padrão usado por quem chama sem opções. */
 const OPCOES_PADRAO = { qtd: 5, nivel: 'misto' };
 
 const NIVEIS = ['facil', 'medio', 'dificil'];

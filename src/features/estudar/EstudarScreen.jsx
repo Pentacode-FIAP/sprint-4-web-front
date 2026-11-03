@@ -111,7 +111,7 @@ export function EstudarScreen() {
               acao={{ rotulo: 'Criar primeiro resumo', onClick: () => setCriando(true) }}
             />
           ) : (
-            <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
+            <ul className="m-0 flex list-none flex-col gap-2.5 p-0 md:grid md:grid-cols-2">
               {resumos.map((r) => (
                 <li key={r.id}>
                   <button
@@ -124,7 +124,7 @@ export function EstudarScreen() {
                       <span className={`${PILULA} flex-none`}>{materiaNome(r.materiaId)}</span>
                     </div>
                     <span className="mt-2 block text-xs text-text-muted tabular-nums">
-                      {r.fotoIds.length} {r.fotoIds.length === 1 ? 'foto' : 'fotos'} ·{' '}
+                      {(r.fotoIds ?? []).length} {(r.fotoIds ?? []).length === 1 ? 'foto' : 'fotos'} ·{' '}
                       {new Date(r.criadoEm).toLocaleDateString('pt-BR')}
                     </span>
                   </button>

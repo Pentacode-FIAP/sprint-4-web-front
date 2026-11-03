@@ -8,7 +8,13 @@ export function Toast({ message, tipo = 'erro', onClose }) {
   // navegador, acima de qualquer <dialog> modal aberto (Sheet, confirmação).
   useEffect(() => {
     const el = ref.current;
-    if (el && !el.matches(':popover-open')) el.showPopover();
+    if (!el || typeof el.showPopover !== 'function') return;
+    // Navegador sem suporte (ou já aberto): o aviso aparece como um bloco fixo comum.
+    try {
+      if (!el.matches(':popover-open')) el.showPopover();
+    } catch {
+      /* sem a camada superior, z-50 e position: fixed bastam */
+    }
   }, []);
 
   useEffect(() => {

@@ -12,8 +12,13 @@ export function MateriaSelect({ value, onChange, permitirVazio = true }) {
 
   // Sem a opção "Sem matéria", o <select> exibe a primeira matéria assim que a
   // lista carrega; sincroniza o estado do formulário com o que aparece na tela.
+  // Id que não existe mais (matéria removida) também vira "sem escolha".
   useEffect(() => {
-    if (!permitirVazio && value === undefined && materias.length > 0) {
+    const existe = value !== undefined && materias.some((m) => m.id === value);
+    if (existe) return;
+    if (permitirVazio) {
+      if (value !== undefined) onChange(undefined);
+    } else if (materias.length > 0) {
       onChange(materias[0].id);
     }
   }, [permitirVazio, value, materias, onChange]);
@@ -35,7 +40,7 @@ export function MateriaSelect({ value, onChange, permitirVazio = true }) {
         </div>
         <select
           id={selectId}
-          value={value ?? ''}
+          value={materias.some((m) => m.id === value) ? value : ''}
           onChange={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}
           className={CAMPO}
         >

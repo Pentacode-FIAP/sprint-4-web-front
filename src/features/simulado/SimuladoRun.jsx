@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { QuestaoCard } from '../../components/QuestaoCard';
 import { Sheet } from '../../components/Sheet';
 import { BTN_PRIMARIO, BTN_SECUNDARIO } from '../../components/estilosBotao';
 import { useConfirmacao } from '../../hooks/useConfirmacao';
+import { useGuardaSaida } from '../../hooks/useGuardaSaida';
 import { useSimulado } from '../../hooks/useSimulado';
 
 function mmss(segundos) {
@@ -36,20 +37,31 @@ export function SimuladoRun({ simulado, onFinalizar, onFechar }) {
     prova.finalizar();
   }
 
+  // Sair sempre pede confirmação: fechar pelo fundo, Esc ou "voltar" do navegador
+  // não pode abandonar a prova em silêncio, nem sem respostas.
+  const perguntandoRef = useRef(false);
   async function sair() {
-    if (finalizado) return;
-    if (emBranco < total) {
+    if (finalizado || perguntandoRef.current) return;
+    perguntandoRef.current = true;
+    try {
       const ok = await confirmar({
         titulo: 'Sair do simulado',
-        descricao: 'A prova não pode ser retomada. Se sair agora, suas respostas serão perdidas.',
+        descricao:
+          emBranco < total
+            ? 'A prova não pode ser retomada. Se sair agora, suas respostas serão perdidas.'
+            : 'A prova não pode ser retomada. Se sair agora, ela será descartada.',
         rotuloConfirmar: 'Sair',
         destrutivo: true,
       });
       if (!ok) return;
+    } finally {
+      perguntandoRef.current = false;
     }
     prova.abandonar();
     onFechar();
   }
+
+  useGuardaSaida(!finalizado, sair);
 
   return (
     <>

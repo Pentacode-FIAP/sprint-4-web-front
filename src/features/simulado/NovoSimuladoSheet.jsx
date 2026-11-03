@@ -7,6 +7,21 @@ import { Sheet } from '../../components/Sheet';
 import { SkeletonCard } from '../../components/Skeleton';
 import { BTN_PRIMARIO, CAMPO_ROTULO } from '../../components/estilosBotao';
 
+/** O que dizer sobre as fontes: orientação quando não há matéria ou resumo para usar. */
+function textoDeFonte(s) {
+  if (s.semMaterias) {
+    return s.temResumoSemMateria
+      ? 'O simulado usa os resumos de uma matéria, e você ainda não tem matérias. Crie uma matéria (botão acima) e um resumo nela.'
+      : 'Você ainda não tem matérias nem resumos. Crie uma matéria (botão acima) e um resumo nela para montar o simulado.';
+  }
+  if (s.semResumo) {
+    return s.temResumoSemMateria
+      ? 'Essa matéria ainda não tem resumo. Resumos sem matéria não entram no simulado: crie um resumo nesta matéria.'
+      : 'Essa matéria ainda não tem resumo. Crie um resumo antes de montar o simulado.';
+  }
+  return `${s.fontes.length} ${s.fontes.length === 1 ? 'resumo servirá' : 'resumos servirão'} de fonte.`;
+}
+
 /** `onIniciar(simulado, aviso)`: `aviso` diz que saiu com menos questões do que o pedido. */
 export function NovoSimuladoSheet({ onFechar, onIniciar, materiaInicial, resumoIdsIniciais }) {
   const s = useNovoSimulado({ materiaInicial, resumoIdsIniciais, onIniciar });
@@ -50,9 +65,7 @@ export function NovoSimuladoSheet({ onFechar, onIniciar, materiaInicial, resumoI
           <Segmented itens={TEMPOS} valor={s.tempo} onChange={s.setTempo} rotulo="Tempo limite" modo="radio" />
 
           <p className="m-0 text-[13px] leading-normal text-text-muted">
-            {s.semResumo
-              ? 'Essa matéria ainda não tem resumo. Crie um resumo antes de montar o simulado.'
-              : `${s.fontes.length} ${s.fontes.length === 1 ? 'resumo servirá' : 'resumos servirão'} de fonte.`}
+            {textoDeFonte(s)}
           </p>
         </>
       )}

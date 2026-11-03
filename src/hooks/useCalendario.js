@@ -129,7 +129,6 @@ export function useCalendario() {
     materiaNome,
     irParaMesAnterior,
     irParaProximoMes,
-    eventosDoMes,
     eventosDoDia,
     eventos,
     salvarEvento,

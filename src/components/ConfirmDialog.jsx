@@ -10,6 +10,8 @@ export function ConfirmDialog({ pedido, onResponder }) {
   const cancelarRef = useRef(null);
   const tituloId = useId();
   const descricaoId = useId();
+  // Só cancela pelo fundo se o gesto também começou nele (arrastar uma seleção para fora não conta).
+  const comecouNoFundo = useRef(false);
 
   useEffect(() => {
     const dialogo = ref.current;
@@ -36,8 +38,13 @@ export function ConfirmDialog({ pedido, onResponder }) {
         e.preventDefault();
         onResponder(false);
       }}
+      onPointerDown={(e) => {
+        comecouNoFundo.current = e.target === e.currentTarget;
+      }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onResponder(false);
+        const doFundo = comecouNoFundo.current;
+        comecouNoFundo.current = false;
+        if (doFundo && e.target === e.currentTarget) onResponder(false);
       }}
       className="m-auto w-[calc(100%-3rem)] max-w-xs rounded-lg bg-surface p-5 text-text shadow-4 backdrop:animate-fade-in backdrop:bg-fora/45 open:animate-pop-in"
     >

@@ -11,6 +11,9 @@ import { BTN_ICONE_SUTIL } from './estilosBotao';
 export function Sheet({ titulo, onFechar, children, footer }) {
   const ref = useRef(null);
   const tituloId = useId();
+  // Só fecha pelo fundo se o gesto também começou nele: arrastar uma seleção de
+  // texto para fora do painel termina com um clique no <dialog>, sem ser um toque no fundo.
+  const comecouNoFundo = useRef(false);
 
   useEffect(() => {
     const dialogo = ref.current;
@@ -35,8 +38,13 @@ export function Sheet({ titulo, onFechar, children, footer }) {
         e.preventDefault();
         onFechar();
       }}
+      onPointerDown={(e) => {
+        comecouNoFundo.current = e.target === e.currentTarget;
+      }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onFechar();
+        const doFundo = comecouNoFundo.current;
+        comecouNoFundo.current = false;
+        if (doFundo && e.target === e.currentTarget) onFechar();
       }}
       className="m-0 mt-auto w-full max-w-none flex-col overflow-hidden rounded-t-xl bg-bg p-0 text-text shadow-4 backdrop:animate-fade-in backdrop:bg-fora/45 open:flex open:max-h-[94dvh] open:animate-sheet-in md:m-auto md:max-h-[85dvh] md:max-w-lg md:rounded-xl"
     >

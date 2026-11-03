@@ -87,7 +87,7 @@ export function AnotacoesSecao({ novoAberto, onFecharNovo }) {
           descricao="Toque no + para anotar uma dúvida, uma ideia da aula ou um lembrete."
         />
       ) : (
-        <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
+        <ul className="m-0 flex list-none flex-col gap-2.5 p-0 md:grid md:grid-cols-2">
           {anotacoes.map((a) => (
             <li key={a.id} className={`${CARTAO} flex flex-col items-start gap-1.5`}>
               <div className="flex w-full items-center justify-between gap-2">

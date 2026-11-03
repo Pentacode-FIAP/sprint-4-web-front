@@ -152,7 +152,7 @@ export function CalendarioScreen() {
             acao={{ rotulo: 'Criar lembrete', onClick: novoLembrete }}
           />
         ) : (
-          <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
+          <ul className="m-0 flex list-none flex-col gap-2.5 p-0 md:grid md:grid-cols-2">
             {proximos.map((ev) => (
               <li
                 key={ev.id}

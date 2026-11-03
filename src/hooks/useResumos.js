@@ -11,10 +11,10 @@ function mensagemDeErro(err) {
  * fotos e persistência. `gerando` e `erro` descrevem só a última geração.
  */
 export function useResumos() {
-  const { itens, adicionar, atualizar, remover } = useColecao('resumos');
+  const { itens, adicionar, atualizar } = useColecao('resumos');
   const { itens: fotos } = useColecao('fotos');
   const { itens: materias } = useColecao('materias');
-  const { itens: exercicios, adicionar: adicionarExercicio, remover: removerExercicio } = useColecao('exercicios');
+  const { itens: exercicios, adicionar: adicionarExercicio } = useColecao('exercicios');
   const [gerando, setGerando] = useState(false);
   const [erro, setErro] = useState(null);
 
@@ -102,14 +102,5 @@ export function useResumos() {
     [adicionarExercicio],
   );
 
-  /** Remove o resumo e os exercícios gerados a partir dele. */
-  const removerResumo = useCallback(
-    (id) => {
-      exercicios.filter((e) => e.resumoId === id).forEach((e) => removerExercicio(e.id));
-      return remover(id);
-    },
-    [exercicios, removerExercicio, remover],
-  );
-
-  return { resumos, gerando, erro, limparErro: () => setErro(null), gerarDeFotos, gerarDeTexto, salvarResumo, removerResumo, exercicioDe, gerarQuestoes };
+  return { resumos, gerando, erro, limparErro: () => setErro(null), gerarDeFotos, gerarDeTexto, salvarResumo, exercicioDe, gerarQuestoes };
 }

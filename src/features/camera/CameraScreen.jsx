@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Toast } from '../../components/Toast';
 import { useCamera } from '../../hooks/useCamera';
 import { useColecao } from '../../hooks/useColecao';
-import { ErroSemChave, MENSAGEM_SEM_CHAVE, runOcr } from '../../lib/gemini';
+import { useOcr } from '../../hooks/useOcr';
 import { BarraStatus } from './BarraStatus';
 import { OcrPanel } from './OcrPanel';
 
@@ -57,10 +57,12 @@ const MODOS_TABS = [
   { id: 'video', label: 'Vídeo' },
 ];
 
+const MSG_FALHA_OCR = 'Não consegui ler o texto. Tente de novo.';
+
 const ZOOMS = ['0.6', '1', '2'];
 
 const BASE_TAB =
-  'relative flex flex-none cursor-pointer items-center gap-[5px] border-0 bg-transparent px-3.5 py-2.5 text-[12px] leading-none whitespace-nowrap transition-[color,font-weight] duration-150';
+  'relative flex min-h-11 flex-none cursor-pointer items-center gap-[5px] border-0 bg-transparent px-3.5 py-2.5 text-[12px] leading-none whitespace-nowrap transition-[color,font-weight] duration-150';
 
 function classeTab(tab, ativo) {
   const cor = tab?.cor ?? 'text-white/38';
@@ -68,12 +70,12 @@ function classeTab(tab, ativo) {
 }
 
 const BTN_ACAO =
-  'flex h-[34px] flex-1 cursor-pointer items-center justify-center rounded-[8px] border border-white/10 bg-white/6 p-0 text-center text-[13px] font-medium text-white/80 transition-[background,border-color,color] duration-[180ms] hover:enabled:border-cam-verde hover:enabled:bg-cam-verde/15 hover:enabled:text-cam-verde disabled:cursor-not-allowed disabled:opacity-40';
+  'flex h-11 flex-1 cursor-pointer items-center justify-center rounded-[8px] border border-white/10 bg-white/6 p-0 text-center text-[13px] font-medium text-white/80 transition-[background,border-color,color] duration-[180ms] hover:enabled:border-cam-verde hover:enabled:bg-cam-verde/15 hover:enabled:text-cam-verde disabled:cursor-not-allowed disabled:opacity-40';
 
 export function CameraScreen({ onAbrirConfig }) {
   const navigate = useNavigate();
   const { adicionar: adicionarFoto } = useColecao('fotos');
-  const { videoRef, erro, alternarCamera, capturar } = useCamera();
+  const { videoRef, pronta, erro, alternarCamera, capturar } = useCamera();
 
   const [modo, setModo] = useState('ia');
   const [zoom, setZoom] = useState('1');
@@ -82,8 +84,7 @@ export function CameraScreen({ onAbrirConfig }) {
   const [flashKey, setFlashKey] = useState(0);
   const [flipping, setFlipping] = useState(false);
   const [toast, setToast] = useState(null);
-  const [ocr, setOcr] = useState(null);
-  const ocrReqRef = useRef(0);
+  const { ocr, ler: lerTexto, cancelar: fecharOcr } = useOcr({ mensagemErro: MSG_FALHA_OCR, exigirTexto: true });
   const flipTimerRef = useRef(null);
 
   useEffect(() => () => clearTimeout(flipTimerRef.current), []);
@@ -101,6 +102,15 @@ export function CameraScreen({ onAbrirConfig }) {
     });
   }
 
+  // Sem quadro: ou a câmera deu erro, ou o stream ainda está subindo.
+  function avisarSemQuadro() {
+    setToast({
+      tipo: 'erro',
+      mensagem:
+        erro || pronta ? 'Câmera indisponível' : 'A câmera ainda está iniciando. Tente de novo em instantes.',
+    });
+  }
+
   function tirarFoto() {
     setFlashKey((k) => k + 1);
     setFotosTiradas((n) => n + 1);
@@ -109,7 +119,7 @@ export function CameraScreen({ onAbrirConfig }) {
 
     const dataUrl = capturar();
     if (!dataUrl) {
-      setToast({ tipo: 'erro', mensagem: 'Câmera indisponível' });
+      avisarSemQuadro();
       return;
     }
 
@@ -120,44 +130,19 @@ export function CameraScreen({ onAbrirConfig }) {
     }
   }
 
-  function fecharOcr() {
-    ocrReqRef.current += 1;
-    setOcr(null);
-  }
-
   function trocarModo(novo) {
     if (novo !== modo) fecharOcr();
     setModo(novo);
   }
 
-  async function copiarTexto() {
-    const req = ocrReqRef.current + 1;
-    ocrReqRef.current = req;
-    setOcr({ estado: 'lendo' });
-
+  function copiarTexto() {
     // Captura em resolução maior só para o OCR; esse quadro não é salvo.
     const dataUrl = capturar({ maxDim: 1920, quality: 0.92 });
     if (!dataUrl) {
-      setOcr(null);
-      setToast({ tipo: 'erro', mensagem: 'Câmera indisponível' });
+      avisarSemQuadro();
       return;
     }
-
-    try {
-      const texto = await runOcr(dataUrl);
-      if (ocrReqRef.current !== req) return;
-      if (!texto.trim()) {
-        setOcr({ estado: 'erro', mensagem: 'Nenhum texto encontrado na imagem.' });
-      } else {
-        setOcr({ estado: 'pronto', texto: texto.trim() });
-      }
-    } catch (err) {
-      if (ocrReqRef.current !== req) return;
-      setOcr({
-        estado: 'erro',
-        mensagem: err instanceof ErroSemChave ? MENSAGEM_SEM_CHAVE : 'Não consegui ler o texto. Tente de novo.',
-      });
-    }
+    lerTexto(dataUrl);
   }
 
   function virarCamera() {
@@ -195,7 +180,7 @@ export function CameraScreen({ onAbrirConfig }) {
             type="button"
             aria-label={btn.nome}
             aria-pressed={btn.id === 'settings' ? undefined : ctrlAtivos.has(btn.id)}
-            className={`cursor-pointer border-0 bg-transparent px-3 py-2.5 text-[17px] text-white transition-opacity duration-[180ms] ease-[ease] ${
+            className={`min-h-11 min-w-11 cursor-pointer border-0 bg-transparent px-3 py-2.5 text-[17px] text-white transition-opacity duration-[180ms] ease-[ease] ${
               ctrlAtivos.has(btn.id) ? 'opacity-100' : 'opacity-60'
             }`}
             onClick={() => alternarCtrl(btn.id)}
@@ -268,12 +253,12 @@ export function CameraScreen({ onAbrirConfig }) {
         />
       </section>
 
-      <div className={`relative z-10 flex flex-none items-center justify-center gap-[34px] py-2.5 before:absolute before:left-1/2 before:h-8 before:w-[114px] before:-translate-x-1/2 before:rounded-2xl before:bg-black/45 ${tema.zoomBar}`}>
+      <div className={`relative z-10 flex flex-none items-center justify-center gap-2.5 before:absolute before:left-1/2 before:h-8 before:w-[114px] before:-translate-x-1/2 before:rounded-2xl before:bg-black/45 ${tema.zoomBar}`}>
         {ZOOMS.map((z) => (
           <button
             key={z}
             type="button"
-            className={`relative z-[1] cursor-pointer border-0 bg-transparent p-0 text-[11px] transition-[color,font-weight] duration-150 ${
+            className={`relative z-[1] flex min-h-11 min-w-11 cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-[11px] transition-[color,font-weight] duration-150 ${
               zoom === z ? 'font-medium text-white' : 'font-normal text-white/38'
             }`}
             onClick={() => setZoom(z)}

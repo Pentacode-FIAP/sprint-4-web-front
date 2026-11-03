@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Camera, ImagePlus, Upload } from 'lucide-react';
-import { useColecao } from '../../hooks/useColecao';
+import { useFotos } from '../../hooks/useFotos';
 import { dataLocal } from '../../lib/date';
 import { fileToDataUrl } from '../../lib/images';
 import { FotoDetalhe } from './FotoDetalhe';
@@ -26,7 +26,7 @@ function agruparPorData(fotos) {
 }
 
 export function GaleriaScreen() {
-  const { itens: fotos, adicionar, atualizar } = useColecao('fotos');
+  const { fotos, adicionar, atualizar, excluirFoto } = useFotos();
   const [selecionadaId, setSelecionadaId] = useState(null);
   const [toast, setToast] = useState(null);
   const inputUploadRef = useRef(null);
@@ -125,6 +125,7 @@ export function GaleriaScreen() {
         <FotoDetalhe
           foto={selecionada}
           onSalvarOcr={(id, texto) => atualizar(id, { ocrText: texto })}
+          onExcluir={excluirFoto}
           onFechar={() => setSelecionadaId(null)}
         />
       )}

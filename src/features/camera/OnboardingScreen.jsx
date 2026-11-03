@@ -91,7 +91,6 @@ export function OnboardingScreen({ onConcluir }) {
     }
     window.addEventListener('keydown', aoTeclar);
     return () => window.removeEventListener('keydown', aoTeclar);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slideAtual, ultimo, confirmacaoAberta]);
 
   return (
@@ -141,10 +140,10 @@ export function OnboardingScreen({ onConcluir }) {
           >
             {ultimo ? 'Entendi' : 'Próximo'}
           </button>
-          <div className="flex items-center justify-center gap-[18px]">
+          <div className="-mb-3 flex items-center justify-center gap-2.5">
             <button
               type="button"
-              className="cursor-pointer border-0 bg-transparent p-0 text-[12px] font-medium tracking-[0.01em] text-white/55 transition-colors duration-150 hover:enabled:text-white disabled:cursor-not-allowed disabled:text-white/15"
+              className="min-h-11 cursor-pointer border-0 bg-transparent px-2 text-[12px] font-medium tracking-[0.01em] text-white/55 transition-colors duration-150 hover:enabled:text-white disabled:cursor-not-allowed disabled:text-white/15"
               onClick={anterior}
               disabled={slideAtual === 0}
             >
@@ -152,7 +151,7 @@ export function OnboardingScreen({ onConcluir }) {
             </button>
             <button
               type="button"
-              className="cursor-pointer border-0 bg-transparent p-0 text-[12px] font-normal tracking-[0.01em] text-white/28 transition-colors duration-150 hover:text-white/60"
+              className="min-h-11 cursor-pointer border-0 bg-transparent px-2 text-[12px] font-normal tracking-[0.01em] text-white/28 transition-colors duration-150 hover:text-white/60"
               onClick={pular}
             >
               Pular tutorial

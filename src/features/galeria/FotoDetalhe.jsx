@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Check, Copy, ScanText } from 'lucide-react';
-import { ErroSemChave, MENSAGEM_SEM_CHAVE, runOcr } from '../../lib/gemini';
+import { Check, Copy, ScanText, Trash2 } from 'lucide-react';
+import { useConfirmacao } from '../../hooks/useConfirmacao';
+import { useOcr } from '../../hooks/useOcr';
 import { Sheet } from '../../components/Sheet';
 import { Toast } from '../../components/Toast';
 import { Skeleton } from '../../components/Skeleton';
 import { NovoResumoSheet } from '../estudar/NovoResumoSheet';
 import { BTN_PRIMARIO, BTN_SECUNDARIO } from '../../components/estilosBotao';
 
-export function FotoDetalhe({ foto, onFechar, onSalvarOcr }) {
+export function FotoDetalhe({ foto, onFechar, onSalvarOcr, onExcluir }) {
+  const { confirmar, dialogoConfirmacao } = useConfirmacao();
   const [texto, setTexto] = useState(foto.ocrText ?? '');
-  const [carregando, setCarregando] = useState(false);
-  const [erro, setErro] = useState(null);
+  const [erroCopia, setErroCopia] = useState(null);
+  const { ocr, ler, cancelar } = useOcr({ mensagemErro: 'Erro ao gerar, tente novamente.' });
+  const carregando = ocr?.estado === 'lendo';
+  const erro = erroCopia ?? (ocr?.estado === 'erro' ? ocr.mensagem : null);
   const [copiado, setCopiado] = useState(false);
   const [criandoResumo, setCriandoResumo] = useState(false);
 
@@ -21,17 +25,16 @@ export function FotoDetalhe({ foto, onFechar, onSalvarOcr }) {
   }, [copiado]);
 
   async function rodarOcr() {
-    setCarregando(true);
-    setErro(null);
-    try {
-      const resultado = await runOcr(foto.dataUrl);
-      setTexto(resultado);
-      onSalvarOcr(foto.id, resultado);
-    } catch (err) {
-      setErro(err instanceof ErroSemChave ? MENSAGEM_SEM_CHAVE : 'Erro ao gerar, tente novamente.');
-    } finally {
-      setCarregando(false);
-    }
+    setErroCopia(null);
+    const resultado = await ler(foto.dataUrl);
+    if (resultado === null) return;
+    setTexto(resultado);
+    onSalvarOcr(foto.id, resultado);
+  }
+
+  function fecharErro() {
+    setErroCopia(null);
+    if (ocr?.estado === 'erro') cancelar();
   }
 
   async function copiarTexto() {
@@ -39,8 +42,18 @@ export function FotoDetalhe({ foto, onFechar, onSalvarOcr }) {
       await navigator.clipboard.writeText(texto);
       setCopiado(true);
     } catch {
-      setErro('Não foi possível copiar o texto.');
+      setErroCopia('Não foi possível copiar o texto.');
     }
+  }
+
+  async function excluir() {
+    const ok = await confirmar({
+      titulo: 'Excluir foto',
+      descricao: 'A foto sai da Galeria e libera espaço. Resumos que a usaram continuam com o texto, sem a foto. Essa ação não pode ser desfeita.',
+      rotuloConfirmar: 'Excluir',
+      destrutivo: true,
+    });
+    if (ok && onExcluir(foto.id)) onFechar();
   }
 
   return (
@@ -84,10 +97,15 @@ export function FotoDetalhe({ foto, onFechar, onSalvarOcr }) {
         <button type="button" onClick={() => setCriandoResumo(true)} className={`${BTN_PRIMARIO} mt-4 w-full`}>
           Transformar em resumo
         </button>
+        <button type="button" onClick={excluir} className={`${BTN_SECUNDARIO} mt-2 w-full text-danger`}>
+          <Trash2 size={17} strokeWidth={2} />
+          Excluir foto
+        </button>
 
-        {erro && <Toast message={erro} onClose={() => setErro(null)} />}
+        {erro && <Toast message={erro} onClose={fecharErro} />}
       </Sheet>
-    {criandoResumo && <NovoResumoSheet fotoInicialId={foto.id} onFechar={() => setCriandoResumo(false)} />}
+      {criandoResumo && <NovoResumoSheet fotoInicialId={foto.id} onFechar={() => setCriandoResumo(false)} />}
+      {dialogoConfirmacao}
     </>
   );
 }

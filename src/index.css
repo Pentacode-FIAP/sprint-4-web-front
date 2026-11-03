@@ -132,4 +132,12 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  /* Animações da câmera: sem varredura, sem flash e sem giro contínuo. */
+  .animate-cam-scan,
+  .animate-cam-flash,
+  .animate-cam-girar,
+  .animate-cam-slide {
+    animation: none !important;
+  }
 }

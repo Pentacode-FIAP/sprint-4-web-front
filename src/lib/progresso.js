@@ -133,12 +133,12 @@ function chaveQuestao(t) {
   return `${t.origem}:${t.origemId}:${t.itemIndex}`;
 }
 
-/** Recorte de um grupo só: um simulado, ou o exercício de um resumo. */
 /**
  * Ponteiros das questões que estão erradas AGORA: a última tentativa de cada
- * questão dentro da janela. Quem chama resolve o enunciado no Dexie.
+ * questão dentro da janela. Quem chama resolve o enunciado na coleção de exercícios
+ * ou de simulados.
  *
- * Com `escopo`, olha só um grupo. Filtrar antes de achar a última tentativa dá
+ * Com `escopo` (um simulado, ou o exercício de um resumo), olha só um grupo. Filtrar antes de achar a última tentativa dá
  * no mesmo que filtrar depois — `chaveQuestao` já separa por origem — e evita
  * varrer o histórico inteiro para montar a fila de um simulado só.
  */

@@ -4,7 +4,6 @@ import {
   CHAVE_CONFIG, chaveColecao, gravarColecao, gravarConfig, lerColecao, lerConfig, NOMES_COLECOES,
 } from '../lib/colecoes';
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const ColecoesContext = createContext(null);
 
 const MSG_COTA = 'Armazenamento cheio. Apague fotos antigas da Galeria e tente de novo.';
