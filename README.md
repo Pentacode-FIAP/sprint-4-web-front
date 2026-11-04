@@ -86,7 +86,7 @@ Rotas: `/` (câmera), `/camera/modos`, `/progresso`, `/estudar`, `/chat`, `/gale
 
 ## Deploy
 
-A definir na Task 14
+Site publicado na Vercel: https://sprint-4-ruddy.vercel.app/
 
 ## Integrantes
 
